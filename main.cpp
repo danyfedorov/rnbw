@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <assert.h>
 #include <vector>
+#include <cstdlib>
 
 #include "clrs.h"
 
@@ -54,6 +55,30 @@ inline void reset() {
 }
 
 enum Pth { RGB, RBG, GRB, GBR, BRG, BGR };
+
+string pth2str(Pth ordr) {
+    switch (ordr) {
+    case RGB:
+        return "RGB";
+        break;
+    case RBG:
+        return "RBG";
+        break;
+    case GRB:
+        return "GRB";
+        break;
+    case GBR:
+        return "GBR";
+        break;
+    case BRG:
+        return "BRG";
+        break;
+    case BGR:
+        return "BGR";
+        break;
+    }
+    return "---";
+}
 
 void extract_heximal_rgb(unsigned n, unsigned &r, unsigned &g, unsigned &b) {
     if (n > 215) {
@@ -221,18 +246,39 @@ void demo(){
     reset();
 }
 
-void demo2(){
-    
-}
-
 int main(int argc, char** argv) {
     int cols;
+
+    unsigned from = std::strtol(argv[1], 0, 10);
+    unsigned to = std::strtol(argv[2], 0, 10);
+    unsigned ordr = std::strtol(argv[3], 0, 10);
+    cout << pth2str(static_cast<Pth>(ordr)) << endl;
 
     vector<string> input;
 
     read_input(input, cols);
 
-    // cout << input;
+    int size;
+    int* pth = mkpath(size, from, to, static_cast<Pth>(ordr));
+    int pthi = 0;
+    bool back = false;
+    for (auto i = input.begin(); i != input.end(); ++i) {
+        pthi = 0;
+        back = false;
+        for (unsigned j = 0; j < i->length(); ++j) {
+            if (pthi == size) {
+                back = true;
+                pthi -= 2;
+            } else if (pthi == -1) {
+                back = false;
+                pthi += 2;
+            }
+            setf(pth[pthi]);
+            cout << (*i)[j];
+            back ? --pthi : ++pthi;
+        }
+        cout << endl;
+    }
 
     // demo();
     
