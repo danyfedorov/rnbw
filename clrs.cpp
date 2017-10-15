@@ -50,3 +50,12 @@ std::string rgb2hex(Rgb rgb) {
 std::string rgb2hex(unsigned int r, unsigned int g, unsigned int b) {
     return rgb2hex({r, g, b});
 }
+
+int fromname(std::string name) {
+    for (int i = 0; i < 256; i++) {
+        if ((clrs[i].name == name) || (clrs[i].simpler_name == name)) {
+            return i;
+        }
+    }
+    return -1;
+}

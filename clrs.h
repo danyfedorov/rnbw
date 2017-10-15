@@ -16,6 +16,8 @@ std::string rgb2hex(Rgb rgb);
 
 std::string rgb2hex(unsigned int r, unsigned int g, unsigned int b);
 
+int fromname(std::string name);
+
 struct Clr {
      std::string name;
      std::string simpler_name;
