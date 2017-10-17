@@ -5,6 +5,9 @@
 #include <vector>
 #include <cstdlib>
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 #include "clrs.h"
 
 // TODO remove
@@ -24,7 +27,7 @@ void read_input(vector<string> &input, int &cols){
 
     string line;
 
-    while (cin >> line) {
+    while (getline(cin, line)) {
         int len = line.length();
         if (len > cols) {
             cols = len;
@@ -252,6 +255,7 @@ int main(int argc, char** argv) {
     unsigned from = std::strtol(argv[1], 0, 10);
     unsigned to = std::strtol(argv[2], 0, 10);
     unsigned ordr = std::strtol(argv[3], 0, 10);
+    float ang = std::strtol(argv[4], 0, 10);
     cout << pth2str(static_cast<Pth>(ordr)) << endl;
 
     vector<string> input;
@@ -260,22 +264,26 @@ int main(int argc, char** argv) {
 
     int size;
     int* pth = mkpath(size, from, to, static_cast<Pth>(ordr));
+    for (int i = 0; i < size; ++i) {
+        cout << pth[i] << " ";
+    }
+    cout << endl << "from " SPC from SPC "to" SPC to SPC "ang" SPC ang << endl;
+
     int pthi = 0;
-    bool back = false;
-    for (auto i = input.begin(); i != input.end(); ++i) {
+
+    float x;
+    //
+    int d = 2;
+    //
+
+    for (unsigned i = 0; i < input.size(); ++i) {
+    // for (auto i = input.begin(); i != input.end(); ++i) {
         pthi = 0;
-        back = false;
-        for (unsigned j = 0; j < i->length(); ++j) {
-            if (pthi == size) {
-                back = true;
-                pthi -= 2;
-            } else if (pthi == -1) {
-                back = false;
-                pthi += 2;
-            }
-            setf(pth[pthi]);
-            cout << (*i)[j];
-            back ? --pthi : ++pthi;
+        for (unsigned j = 0; j < input[i].length(); ++j) {
+            x = cos(ang * M_PI / 180) * i + sin(ang * M_PI / 180) * j;
+            pthi = abs(floor(x/d));
+            setf(pth[pthi % size]);
+            cout << input[i][j];
         }
         cout << endl;
     }
