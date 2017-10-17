@@ -22,17 +22,9 @@ using std::vector;
 
 const string escape = "\u001b[";
 
-void read_input(vector<string> &input, int &cols){
-    cols = 0;
-
+void read_input(vector<string> &input){
     string line;
-
     while (getline(cin, line)) {
-        int len = line.length();
-        if (len > cols) {
-            cols = len;
-        }
-
         input.push_back(line);
     }
 }
@@ -160,107 +152,16 @@ int* mkpath(int &size, unsigned from, unsigned to, Pth order) {
     return path;
 }
 
-void test() {
-    // setf(203);
-    // cout << "opana" << endl;
-    // setb(155);
-    // cout << "faffed";
-    // reset();
-
-    // cout << endl << fromname("grey-53") SPC "sould be 102" << endl;
-    // cout << clrs[45].name SPC clrs[45].rgb SPC hex2rgb(clrs[45].rgb).r SPC hex2rgb(clrs[45].rgb).g SPC hex2rgb(clrs[45].rgb).b << endl;
-    // cout << 40 SPC 255 SPC 10 SPC "-->" SPC rgb2hex(40, 255, 10) SPC "sould be 28ff0a" << endl;
-
-    // unsigned r, g, b;
-    // extract_heximal_rgb(131, r, g, b);
-    // cout << r SPC g SPC b << endl;
-
-    // int* pth;
-    // int size;
-    // cout << endl;
-    // pth = mkpath(size, 16, 231, RGB);
-    // for (int i = 0; i < size; ++i) {
-    //     cout << pth[i] << endl;
-    // }
-
-    // cout << "-----" << endl;
-
-    // pth = mkpath(size, 231, 16, BGR);
-    // for (int i = 0; i < size; ++i) {
-    //     cout << pth[i] << endl;
-    // }
-}
-
-void demo(){
-    int size;
-    int* pth = mkpath(size, 231, 16, BGR);
-    setb(233);
-    cout << "231->16" << endl << "BGR ";
-    for (int i = 0; i < size; ++i) {
-        setf(pth[i]);
-        cout << "@@@@@@@";
-    }
-    cout << endl;
-    reset();
-    setb(233);
-    //
-    pth = mkpath(size, 16, 231, RGB);
-    cout << "16->231" << endl << "RGB ";
-    for (int i = 0; i < size; ++i) {
-        setf(pth[i]);
-        cout << "@@@@@@@";
-    }
-    cout << endl;
-    pth = mkpath(size, 16, 231, RBG);
-    cout << "RBG ";
-    for (int i = 0; i < size; ++i) {
-        setf(pth[i]);
-        cout << "@@@@@@@";
-    }
-    cout << endl;
-    pth = mkpath(size, 16, 231, BRG);
-    cout << "BRG ";
-    for (int i = 0; i < size; ++i) {
-        setf(pth[i]);
-        cout << "@@@@@@@";
-    }
-    cout << endl;
-    pth = mkpath(size, 16, 231, BGR);
-    cout << "BGR ";
-    for (int i = 0; i < size; ++i) {
-        setf(pth[i]);
-        cout << "@@@@@@@";
-    }
-    cout << endl;
-    pth = mkpath(size, 16, 231, GRB);
-    cout << "GRB ";
-    for (int i = 0; i < size; ++i) {
-        setf(pth[i]);
-        cout << "@@@@@@@";
-    }
-    cout << endl;
-    pth = mkpath(size, 16, 231, GBR);
-    cout << "GBR ";
-    for (int i = 0; i < size; ++i) {
-        setf(pth[i]);
-        cout << "@@@@@@@";
-    }
-    cout << endl;
-    reset();
-}
-
 int main(int argc, char** argv) {
-    int cols;
-
+    // args
     unsigned from = std::strtol(argv[1], 0, 10);
     unsigned to = std::strtol(argv[2], 0, 10);
     unsigned ordr = std::strtol(argv[3], 0, 10);
-    float ang = std::strtol(argv[4], 0, 10);
-    cout << pth2str(static_cast<Pth>(ordr)) << endl;
+    int ang = std::strtol(argv[4], 0, 10);
+    int d = std::strtol(argv[5], 0, 10);
 
     vector<string> input;
-
-    read_input(input, cols);
+    read_input(input);
 
     int size;
     int* pth = mkpath(size, from, to, static_cast<Pth>(ordr));
@@ -272,9 +173,6 @@ int main(int argc, char** argv) {
     int pthi = 0;
 
     float x;
-    //
-    int d = 2;
-    //
 
     for (unsigned i = 0; i < input.size(); ++i) {
     // for (auto i = input.begin(); i != input.end(); ++i) {
