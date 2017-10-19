@@ -184,7 +184,7 @@ int main(int argc, char** argv) {
             if (abs(floor(x) - x) < 0.001) x = floor(x);
 
             pthi = abs(floor(x/d)) % size;
-            (x < 0) ? setf(pth[size - pthi]) : setf(pth[pthi]);
+            (x < 0) ? setf((pthi == 0) ? pth[0] : pth[size - pthi]) : setf(pth[pthi]);
             cout << input[i][2*j];
             if (2*j + 1 < input[i].length()) {
                 cout << input[i][2*j + 1];
