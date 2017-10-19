@@ -135,21 +135,22 @@ int main(int argc, char** argv) {
     unsigned y_i = 0;
     unsigned x_i = 0;
     while (getline(cin, line)) {
-        pthi = 0;
         x_i = 0;
         while(2*x_i < line.length()) {
             x = cos(ang) * y_i + sin(ang) * x_i; // turn argument
 
-            if (abs(ceil(x) - x) < 0.001) x = ceil(x); // fix errors
+            if (abs(ceil(x) - x) < 0.001)  x = ceil(x); // fix errors
             if (abs(floor(x) - x) < 0.001) x = floor(x);
 
-            pthi = abs(floor(x / width)) % pth.size(); // use function with turned arg
-
             if (x < 0) {
-                setf((pthi == 0) ? pth[0] : pth[pth.size() - pthi]);
+                pthi = abs(ceil(x / width));
+                pthi %= pth.size();
+                pthi = pth.size() - 1 - pthi;
             } else {
-                setf(pth[pthi]);
+                pthi = abs(floor(x / width));
+                pthi %= pth.size();
             }
+            setf(pth[pthi]);
 
             // one square unit is two chars
             cout << line[2*x_i];
