@@ -147,7 +147,7 @@ int main(int argc, char** argv) {
     unsigned from = std::strtol(argv[1], 0, 10);
     unsigned to = std::strtol(argv[2], 0, 10);
     unsigned ordr = std::strtol(argv[3], 0, 10);
-    int ang = std::strtol(argv[4], 0, 10) * M_PI / 180; // convert to radians
+    float ang = std::strtol(argv[4], 0, 10) * M_PI / 180; // convert to radians
     int width = std::strtol(argv[5], 0, 10);
 
     vector<int> pth(16);
