@@ -45,30 +45,6 @@ inline void reset() {
 
 enum Pth { RGB, RBG, GRB, GBR, BRG, BGR };
 
-string pth2str(Pth ordr) {
-    switch (ordr) {
-    case RGB:
-        return "RGB";
-        break;
-    case RBG:
-        return "RBG";
-        break;
-    case GRB:
-        return "GRB";
-        break;
-    case GBR:
-        return "GBR";
-        break;
-    case BRG:
-        return "BRG";
-        break;
-    case BGR:
-        return "BGR";
-        break;
-    }
-    return "---";
-}
-
 void extract_heximal_rgb(unsigned n, unsigned &r, unsigned &g, unsigned &b) {
     if (n > 215) {
         std::ostringstream err_msg;
@@ -169,7 +145,11 @@ int main(int argc, char** argv) {
 
             pthi = abs(floor(x / width)) % pth.size(); // use function with turned arg
 
-            (x < 0) ? setf((pthi == 0) ? pth[0] : pth[pth.size() - pthi]) : setf(pth[pthi]); // TODO: simpler?
+            if (x < 0) {
+                setf((pthi == 0) ? pth[0] : pth[pth.size() - pthi]);
+            } else {
+                setf(pth[pthi]);
+            }
 
             // one square unit is two chars
             cout << line[2*x_i];
