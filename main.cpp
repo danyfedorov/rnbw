@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <assert.h>
 #include <vector>
+#include <array>
 #include <cstdlib>
 
 #define _USE_MATH_DEFINES
@@ -18,15 +19,9 @@ using std::cout;
 using std::endl;
 using std::string;
 using std::vector;
+using std::array;
 
 const string escape = "\u001b[";
-
-void read_input(vector<string> &input){
-    string line;
-    while (getline(cin, line)) {
-        input.push_back(line);
-    }
-}
 
 inline void setf(unsigned c) {
     if (c < 16) {
@@ -87,16 +82,14 @@ void extract_heximal_rgb(unsigned n, unsigned &r, unsigned &g, unsigned &b) {
     r = n % 6;
 }
 
-void mkpath_aux(int* path, unsigned &comp, int dcomp, unsigned cap, int &i, int coef, int common) {
+void mkpath_aux(vector<int> &path, unsigned &comp, int dcomp, unsigned cap, int coef, int common) {
     while (comp != cap) {
         comp += dcomp;
-        path[i] = comp * coef + common + 16;
-        // cout << coef SPC comp SPC cap SPC path[i] << endl;
-        ++i;
+        path.push_back(comp * coef + common + 16);
     }
 }
 
-int* mkpath(int &size, unsigned from, unsigned to, Pth order) {
+vector<int> mkpath(unsigned from, unsigned to, Pth order) {
     assert((from >= 16) && (from <= 231));
     assert((to >= 16) && (to <= 231));
 
@@ -112,42 +105,40 @@ int* mkpath(int &size, unsigned from, unsigned to, Pth order) {
     (g2 > g1) ? dg = 1 : dg = -1;
     (b2 > b1) ? db = 1 : db = -1;
 
-    int* path = new int[16];
-    path[0] = r1 * 36 + g1 * 6 + b1 + 16;
-    int i = 1;
+    vector<int> path;
+    path.push_back(r1 * 36 + g1 * 6 + b1 + 16);
     switch (order) {
     case RGB:
-        mkpath_aux(path, r1, dr, r2, i, 36, g1 * 6 + b1);
-        mkpath_aux(path, g1, dg, g2, i, 6, r1 * 36 + b1);
-        mkpath_aux(path, b1, db, b2, i, 1, r1 * 36 + g1 * 6);
+        mkpath_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
+        mkpath_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
+        mkpath_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
         break;
     case RBG:
-        mkpath_aux(path, r1, dr, r2, i, 36, g1 * 6 + b1);
-        mkpath_aux(path, b1, db, b2, i, 1, r1 * 36 + g1 * 6);
-        mkpath_aux(path, g1, dg, g2, i, 6, r1 * 36 + b1);
+        mkpath_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
+        mkpath_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
+        mkpath_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
         break;
     case GRB:
-        mkpath_aux(path, g1, dg, g2, i, 6, r1 * 36 + b1);
-        mkpath_aux(path, r1, dr, r2, i, 36, g1 * 6 + b1);
-        mkpath_aux(path, b1, db, b2, i, 1, r1 * 36 + g1 * 6);
+        mkpath_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
+        mkpath_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
+        mkpath_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
         break;
     case GBR:
-        mkpath_aux(path, g1, dg, g2, i, 6, r1 * 36 + b1);
-        mkpath_aux(path, b1, db, b2, i, 1, r1 * 36 + g1 * 6);
-        mkpath_aux(path, r1, dr, r2, i, 36, g1 * 6 + b1);
+        mkpath_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
+        mkpath_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
+        mkpath_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
         break;
     case BRG:
-        mkpath_aux(path, b1, db, b2, i, 1, r1 * 36 + g1 * 6);
-        mkpath_aux(path, r1, dr, r2, i, 36, g1 * 6 + b1);
-        mkpath_aux(path, g1, dg, g2, i, 6, r1 * 36 + b1);
+        mkpath_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
+        mkpath_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
+        mkpath_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
         break;
     case BGR:
-        mkpath_aux(path, b1, db, b2, i, 1, r1 * 36 + g1 * 6);
-        mkpath_aux(path, g1, dg, g2, i, 6, r1 * 36 + b1);
-        mkpath_aux(path, r1, dr, r2, i, 36, g1 * 6 + b1);
+        mkpath_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
+        mkpath_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
+        mkpath_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
         break;
     }
-    size = i;
     return path;
 }
 
@@ -156,43 +147,40 @@ int main(int argc, char** argv) {
     unsigned from = std::strtol(argv[1], 0, 10);
     unsigned to = std::strtol(argv[2], 0, 10);
     unsigned ordr = std::strtol(argv[3], 0, 10);
-    int ang = std::strtol(argv[4], 0, 10);
-    int d = std::strtol(argv[5], 0, 10);
+    int ang = std::strtol(argv[4], 0, 10) * M_PI / 180; // convert to radians
+    int width = std::strtol(argv[5], 0, 10);
 
-    vector<string> input;
-    read_input(input);
+    vector<int> pth(16);
+    pth = mkpath(from, to, static_cast<Pth>(ordr));
 
-    int size;
-    int* pth = mkpath(size, from, to, static_cast<Pth>(ordr));
-    for (int i = 0; i < size; ++i) {
-        cout << pth[i] << " ";
-    }
-    cout << endl << "from " SPC from SPC "to" SPC to SPC "ang" SPC ang << endl;
-
-    int pthi = 0;
-
+    string line;
+    unsigned pthi;
     float x;
-    float ang_rad = ang * M_PI / 180;
-    // x is j, i is y
-    for (unsigned i = 0; i < input.size(); ++i) {
+    unsigned y_i = 0;
+    unsigned x_i = 0;
+    while (getline(cin, line)) {
         pthi = 0;
-        unsigned j = 0;
-        while(2*j < input[i].length()) {
-            x = cos(ang_rad) * i + sin(ang_rad) * j;
+        x_i = 0;
+        while(2*x_i < line.length()) {
+            x = cos(ang) * y_i + sin(ang) * x_i; // turn argument
 
-            if (abs(ceil(x) - x) < 0.001) x = ceil(x);
+            if (abs(ceil(x) - x) < 0.001) x = ceil(x); // fix errors
             if (abs(floor(x) - x) < 0.001) x = floor(x);
 
-            pthi = abs(floor(x/d)) % size;
-            (x < 0) ? setf((pthi == 0) ? pth[0] : pth[size - pthi]) : setf(pth[pthi]);
-            cout << input[i][2*j];
-            if (2*j + 1 < input[i].length()) {
-                cout << input[i][2*j + 1];
+            pthi = abs(floor(x / width)) % pth.size(); // use function with turned arg
+
+            (x < 0) ? setf((pthi == 0) ? pth[0] : pth[pth.size() - pthi]) : setf(pth[pthi]); // TODO: simpler?
+
+            // one square unit is two chars
+            cout << line[2*x_i];
+            if (2*x_i + 1 < line.length()) {
+                cout << line[2*x_i + 1];
             }
-            // cout SPC i SPC j SPC x SPC pthi << endl;
-            ++j;
+            ++x_i;
         }
+
         cout << endl;
+        ++y_i;
     }
 
     return 0;
