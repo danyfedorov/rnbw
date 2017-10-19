@@ -173,15 +173,15 @@ int main(int argc, char** argv) {
 
     float x;
     float ang_rad = ang * M_PI / 180;
+    // x is j, i is y
     for (unsigned i = 0; i < input.size(); ++i) {
-    // for (auto i = input.begin(); i != input.end(); ++i) {
         pthi = 0;
         unsigned j = 0;
         while(2*j < input[i].length()) {
             x = cos(ang_rad) * i + sin(ang_rad) * j;
 
-            if (abs(ceil(x)) - x < 0.001) x = ceil(x);
-            if (abs(floor(x)) - x < 0.001) x = floor(x);
+            if (abs(ceil(x) - x) < 0.001) x = ceil(x);
+            if (abs(floor(x) - x) < 0.001) x = floor(x);
 
             pthi = abs(floor(x/d)) % size;
             (x < 0) ? setf(pth[size - pthi]) : setf(pth[pthi]);
