@@ -12,7 +12,6 @@
 
 // TODO remove
 #define SPC << " " <<
-#define SGR(arg) "\u001b[" << arg << "m"
 
 using std::cin;
 using std::cout;
@@ -173,23 +172,28 @@ int main(int argc, char** argv) {
     int pthi = 0;
 
     float x;
-
+    float ang_rad = ang * M_PI / 180;
     for (unsigned i = 0; i < input.size(); ++i) {
     // for (auto i = input.begin(); i != input.end(); ++i) {
         pthi = 0;
-        for (unsigned j = 0; j < input[i].length(); ++j) {
-            x = cos(ang * M_PI / 180) * i + sin(ang * M_PI / 180) * j;
-            pthi = abs(floor(x/d));
-            setf(pth[pthi % size]);
-            cout << input[i][j];
+        unsigned j = 0;
+        while(2*j < input[i].length()) {
+            x = cos(ang_rad) * i + sin(ang_rad) * j;
+
+            if (abs(ceil(x)) - x < 0.001) x = ceil(x);
+            if (abs(floor(x)) - x < 0.001) x = floor(x);
+
+            pthi = abs(floor(x/d)) % size;
+            (x < 0) ? setf(pth[size - pthi]) : setf(pth[pthi]);
+            cout << input[i][2*j];
+            if (2*j + 1 < input[i].length()) {
+                cout << input[i][2*j + 1];
+            }
+            // cout SPC i SPC j SPC x SPC pthi << endl;
+            ++j;
         }
         cout << endl;
     }
-
-    // demo();
-    
-
-    test();
 
     return 0;
 }
