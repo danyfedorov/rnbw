@@ -1,15 +1,19 @@
+// internal
+#include "clrs.h"
+
+// external
+#include "utf8.h"
+
+// std
 #include <iostream>
 #include <string>
 #include <stdexcept>
 #include <assert.h>
 #include <vector>
-#include <array>
 #include <cstdlib>
 
 #define _USE_MATH_DEFINES
 #include <math.h>
-
-#include "clrs.h"
 
 // TODO remove
 #define SPC << " " <<
@@ -19,9 +23,10 @@ using std::cout;
 using std::endl;
 using std::string;
 using std::vector;
-using std::array;
 
+// settings
 const string escape = "\u001b[";
+const float eps = 0.0001;
 
 inline void setf(unsigned c) {
     if (c < 16) {
@@ -31,7 +36,7 @@ inline void setf(unsigned c) {
     }
 }
 
-inline void setb(unsigned c) {
+inline void setb(size_t c) {
     if (c < 16) {
         cout << escape << c + 40 << "m";
     } else {
@@ -43,9 +48,9 @@ inline void reset() {
     cout << escape << "0m";
 }
 
-enum Pth { RGB, RBG, GRB, GBR, BRG, BGR };
+enum PathOrder { RGB, RBG, GRB, GBR, BRG, BGR };
 
-void extract_heximal_rgb(unsigned n, unsigned &r, unsigned &g, unsigned &b) {
+void extract_heximal_rgb(size_t n, size_t &r, size_t &g, size_t &b) {
     if (n > 215) {
         std::ostringstream err_msg;
         err_msg << n << " is over 215";
@@ -58,21 +63,21 @@ void extract_heximal_rgb(unsigned n, unsigned &r, unsigned &g, unsigned &b) {
     r = n % 6;
 }
 
-void mkpath_aux(vector<int> &path, unsigned &comp, int dcomp, unsigned cap, int coef, int common) {
+void mkpath_aux(vector<int> &path, size_t &comp, int dcomp, size_t cap, int coef, int common) {
     while (comp != cap) {
         comp += dcomp;
         path.push_back(comp * coef + common + 16);
     }
 }
 
-vector<int> mkpath(unsigned from, unsigned to, Pth order) {
+vector<int> mkpath(size_t from, size_t to, PathOrder order) {
     assert((from >= 16) && (from <= 231));
     assert((to >= 16) && (to <= 231));
 
     from -= 16;
     to -= 16;
 
-    unsigned r1, g1, b1, r2, g2, b2;
+    size_t r1, g1, b1, r2, g2, b2;
     extract_heximal_rgb(from, r1, g1, b1);
     extract_heximal_rgb(to, r2, g2, b2);
 
@@ -118,45 +123,60 @@ vector<int> mkpath(unsigned from, unsigned to, Pth order) {
     return path;
 }
 
+void one_utf8_char_out(string::iterator &it, string::iterator line_end) {
+    string::iterator it_utf8_char_end = it;
+    utf8::advance(it_utf8_char_end, 1, line_end);
+    while (it != it_utf8_char_end) {
+        cout << *it;
+        ++it;
+    }
+}
+
 int main(int argc, char** argv) {
     // args
-    unsigned from = std::strtol(argv[1], 0, 10);
-    unsigned to = std::strtol(argv[2], 0, 10);
-    unsigned ordr = std::strtol(argv[3], 0, 10);
+    size_t from = std::strtol(argv[1], 0, 10);
+    size_t to = std::strtol(argv[2], 0, 10);
+    size_t ordr = std::strtol(argv[3], 0, 10);
     float ang = std::strtol(argv[4], 0, 10) * M_PI / 180; // convert to radians
     int width = std::strtol(argv[5], 0, 10);
 
     vector<int> pth(16);
-    pth = mkpath(from, to, static_cast<Pth>(ordr));
+    pth = mkpath(from, to, static_cast<PathOrder>(ordr));
 
     string line;
-    unsigned pthi;
+    string::iterator it;
+    size_t color_i;
     float x;
-    unsigned y_i = 0;
-    unsigned x_i = 0;
+    size_t y_i = 0;
+    size_t x_i = 0;
     while (getline(cin, line)) {
         x_i = 0;
-        while(2*x_i < line.length()) {
+        // utf8_ch_num = utf8::distance(line.begin(), line.end());
+        it = line.begin();
+        while(it != line.end()) {
             x = cos(ang) * y_i + sin(ang) * x_i; // turn argument
 
-            if (abs(ceil(x) - x) < 0.001)  x = ceil(x); // fix errors
-            if (abs(floor(x) - x) < 0.001) x = floor(x);
+            if (fabs(ceil(x) - x) < eps) x = ceil(x); // fix errors
+            if (fabs(floor(x) - x) < eps) x = floor(x);
 
             if (x < 0) {
-                pthi = abs(ceil(x / width));
-                pthi %= pth.size();
-                pthi = pth.size() - 1 - pthi;
+                color_i = abs(ceil(x / width));
+                color_i %= pth.size();
+                color_i = pth.size() - 1 - color_i;
             } else {
-                pthi = abs(floor(x / width));
-                pthi %= pth.size();
+                color_i = abs(floor(x / width));
+                color_i %= pth.size();
             }
-            setf(pth[pthi]);
+            setf(pth[color_i]);
 
             // one square unit is two chars
-            cout << line[2*x_i];
-            if (2*x_i + 1 < line.length()) {
-                cout << line[2*x_i + 1];
+            // first char
+            one_utf8_char_out(it, line.end());
+            // second char
+            if (it != line.end()) {
+                one_utf8_char_out(it, line.end());
             }
+
             ++x_i;
         }
 
