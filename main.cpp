@@ -1,5 +1,6 @@
 // internal
 #include "clrs.h"
+#include "arg_parser.h"
 
 // external
 #include "utf8.h"
@@ -8,9 +9,7 @@
 #include <iostream>
 #include <string>
 #include <stdexcept>
-#include <assert.h>
 #include <vector>
-#include <cstdlib>
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -36,7 +35,7 @@ inline void setf(unsigned c) {
     }
 }
 
-inline void setb(size_t c) {
+inline void setb(unsigned c) {
     if (c < 16) {
         cout << escape << c + 40 << "m";
     } else {
@@ -46,81 +45,6 @@ inline void setb(size_t c) {
 
 inline void reset() {
     cout << escape << "0m";
-}
-
-enum PathOrder { RGB, RBG, GRB, GBR, BRG, BGR };
-
-void extract_heximal_rgb(size_t n, size_t &r, size_t &g, size_t &b) {
-    if (n > 215) {
-        std::ostringstream err_msg;
-        err_msg << n << " is over 215";
-        throw std::runtime_error(err_msg.str());
-    }
-    b = n % 6;
-    n = (n - b) / 6;
-    g = n % 6;
-    n = (n - g) / 6;
-    r = n % 6;
-}
-
-void mkpath_aux(vector<int> &path, size_t &comp, int dcomp, size_t cap, int coef, int common) {
-    while (comp != cap) {
-        comp += dcomp;
-        path.push_back(comp * coef + common + 16);
-    }
-}
-
-vector<int> mkpath(size_t from, size_t to, PathOrder order) {
-    assert((from >= 16) && (from <= 231));
-    assert((to >= 16) && (to <= 231));
-
-    from -= 16;
-    to -= 16;
-
-    size_t r1, g1, b1, r2, g2, b2;
-    extract_heximal_rgb(from, r1, g1, b1);
-    extract_heximal_rgb(to, r2, g2, b2);
-
-    int dr, dg, db;
-    (r2 > r1) ? dr = 1 : dr = -1;
-    (g2 > g1) ? dg = 1 : dg = -1;
-    (b2 > b1) ? db = 1 : db = -1;
-
-    vector<int> path;
-    path.push_back(r1 * 36 + g1 * 6 + b1 + 16);
-    switch (order) {
-    case RGB:
-        mkpath_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
-        mkpath_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
-        mkpath_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
-        break;
-    case RBG:
-        mkpath_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
-        mkpath_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
-        mkpath_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
-        break;
-    case GRB:
-        mkpath_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
-        mkpath_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
-        mkpath_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
-        break;
-    case GBR:
-        mkpath_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
-        mkpath_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
-        mkpath_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
-        break;
-    case BRG:
-        mkpath_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
-        mkpath_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
-        mkpath_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
-        break;
-    case BGR:
-        mkpath_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
-        mkpath_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
-        mkpath_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
-        break;
-    }
-    return path;
 }
 
 void one_utf8_char_out(string::iterator &it, string::iterator line_end) {
@@ -133,41 +57,41 @@ void one_utf8_char_out(string::iterator &it, string::iterator line_end) {
 }
 
 int main(int argc, char** argv) {
-    // args
-    size_t from = std::strtol(argv[1], 0, 10);
-    size_t to = std::strtol(argv[2], 0, 10);
-    size_t ordr = std::strtol(argv[3], 0, 10);
-    float ang = std::strtol(argv[4], 0, 10) * M_PI / 180; // convert to radians
-    int width = std::strtol(argv[5], 0, 10);
+    arg_parser_result_t r;
 
-    vector<int> pth(16);
-    pth = mkpath(from, to, static_cast<PathOrder>(ordr));
+    r = parse_arguments(argc, argv);
+    cout << "o " << r.order << endl;
+    cout << "a " << r.angle << endl;
+    cout << "w " << r.width << endl;
+    for (auto i : r.path) {
+        cout << i << " ";
+    }
+    cout << endl;
 
     string line;
     string::iterator it;
-    size_t color_i;
+    unsigned color_i;
     float x;
-    size_t y_i = 0;
-    size_t x_i = 0;
+    unsigned y_i = 0;
+    unsigned x_i = 0;
     while (getline(cin, line)) {
         x_i = 0;
-        // utf8_ch_num = utf8::distance(line.begin(), line.end());
         it = line.begin();
         while(it != line.end()) {
-            x = cos(ang) * y_i + sin(ang) * x_i; // turn argument
+            x = cos(r.angle) * y_i + sin(r.angle) * x_i; // turn argument
 
             if (fabs(ceil(x) - x) < eps) x = ceil(x); // fix errors
             if (fabs(floor(x) - x) < eps) x = floor(x);
 
             if (x < 0) {
-                color_i = abs(ceil(x / width));
-                color_i %= pth.size();
-                color_i = pth.size() - 1 - color_i;
+                color_i = abs(ceil(x / r.width));
+                color_i %= r.path.size();
+                color_i = r.path.size() - 1 - color_i;
             } else {
-                color_i = abs(floor(x / width));
-                color_i %= pth.size();
+                color_i = abs(floor(x / r.width));
+                color_i %= r.path.size();
             }
-            setf(pth[color_i]);
+            setf(r.path[color_i]);
 
             // one square unit is two chars
             // first char

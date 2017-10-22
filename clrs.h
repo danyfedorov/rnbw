@@ -4,27 +4,27 @@
 #include <string>
 #include <sstream>
 
-struct Rgb {
+struct rgb_t {
      unsigned int r;
      unsigned int g;
      unsigned int b;
 };
 
-Rgb hex2rgb(std::string s);
+rgb_t hex2rgb(std::string s);
 
-std::string rgb2hex(Rgb rgb);
+std::string rgb2hex(rgb_t rgb);
 
 std::string rgb2hex(unsigned int r, unsigned int g, unsigned int b);
 
-int fromname(std::string name);
+int colornum_from_colorname(std::string name);
 
-struct Clr {
+struct clr_t {
      std::string name;
      std::string simpler_name;
      std::string rgb;
 };
 
-const Clr clrs[256] = {
+const clr_t colors[256] = {
     {"black", "", "000000"},
     {"red", "", "ff0000"},
     {"green", "", "008000"},
