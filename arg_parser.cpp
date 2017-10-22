@@ -215,9 +215,15 @@ vector<unsigned> getpath(vector<grad_t> colors, path_order_t order) {
 arg_parser_result_t parse_arguments(int argc, char** argv) {
     arg_parser_result_t res;
 
+    res.path = mkpath(33, 158, RGB);
+    res.angle = M_PI / 6;
+    res.width = 2;
+
     vector<string> args = args_to_vector(argc, argv);
     vector<string>::iterator it = args.begin();
     vector<string>::iterator end = args.end();
+
+    path_order_t order;
 
     vector<grad_t> colors;
 
@@ -227,7 +233,7 @@ arg_parser_result_t parse_arguments(int argc, char** argv) {
             colors = parse_colors(it, end);
         } else if ((*it == "-o") || (*it == "--order")) {
             ++it;
-            res.order = str_to_order(*it);
+            order = str_to_order(*it);
             ++it;
         } else if ((*it == "-a") || (*it == "--angle")) {
             ++it;
@@ -239,6 +245,9 @@ arg_parser_result_t parse_arguments(int argc, char** argv) {
             ++it;
         }
     }
-    res.path = getpath(colors, res.order);
+
+    if (!colors.empty()) {
+        res.path = getpath(colors, order);
+    }
     return res;
 }

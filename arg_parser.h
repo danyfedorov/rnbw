@@ -6,7 +6,6 @@
 enum path_order_t { RGB, RBG, GRB, GBR, BRG, BGR };
 
 struct arg_parser_result_t {
-     path_order_t order;
      std::vector<unsigned> path;
      float angle;
      unsigned width;

@@ -60,13 +60,6 @@ int main(int argc, char** argv) {
     arg_parser_result_t r;
 
     r = parse_arguments(argc, argv);
-    cout << "o " << r.order << endl;
-    cout << "a " << r.angle << endl;
-    cout << "w " << r.width << endl;
-    for (auto i : r.path) {
-        cout << i << " ";
-    }
-    cout << endl;
 
     string line;
     string::iterator it;
