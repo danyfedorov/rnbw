@@ -1,14 +1,32 @@
-default: build
+.PHONY: all grammar run clean
 
-build: main.cpp clrs.cpp clrs.h arg_parser.cpp arg_parser.h
-	@g++ -std=c++11 -Wall main.cpp clrs.cpp arg_parser.cpp -o rnbw -lncurses
+CC=g++
+NAME=rnbw
+LIBS=-lantlr3c
+FLAGS=-std=c++11 -Wall -g
+FILES=main.cpp \
+      clrs.cpp clrs.h \
+      core.cpp core.h \
+      arg_parser.cpp arg_parser.h \
+      grammar/rnbwParser.c grammar/rnbwParser.h \
+      grammar/rnbwLexer.c grammar/rnbwLexer.h \
 
-run: build
-	@./rnbw
+
+
+all: grammar app
+
+grammar:
+	$(MAKE) -C $(shell pwd)/grammar generate
+
+app: $(FILES)
+	$(CC) $(FLAGS) $(FILES) -o $(NAME) $(LIBS)
+
+run: all
+	./rnbw
 
 # asm:
 # 	@g++ -S -g main.cpp -o main.s
 # 	@as -alhnd main.s > main.lst
 
 clean:
-	@-rm rnbw *~ main.lst main.s a.out || true
+	rm rnbw *~ main.lst main.s a.out

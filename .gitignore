@@ -1,6 +1,11 @@
 # executable
 rnbw
 
+# generated
+rnbwLexer.*
+rnbwParser.*
+rnbw.tokens
+
 # Created by https://www.gitignore.io/api/c++,emacs,linux
 
 ### C++ ###

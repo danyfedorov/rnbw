@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 
-for i in {1..40}; do
-    for j in {1..50}; do
-        printf "☻☺☹"
+# settings
+WIDTH=4
+HEIGHT=5
+EL="☻☺☹"
+
+for ((i = 0; i < $WIDTH; i++)); do
+    for ((j = 0; j < $HEIGHT; j++)); do
+        printf $EL
     done
     echo
 done

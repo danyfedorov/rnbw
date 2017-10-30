@@ -1,10 +1,15 @@
 #include "arg_parser.h"
 
+// internal
+#include "core.h"
 #include "clrs.h"
 
+// std
 #include <string>
+#include <cstring>
 #include <stdexcept>
 #include <assert.h>
+#include <iostream>
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -12,242 +17,175 @@
 using std::string;
 using std::vector;
 
-void extract_heximal_rgb(unsigned n, unsigned &r, unsigned &g, unsigned &b) {
-    if (n > 215) {
-        std::ostringstream err_msg;
-        err_msg << "rnbw: " << n << " is over 215";
-        throw std::runtime_error(err_msg.str());
+using std::cout;
+using std::endl;
+
+antlr_context_t get_antlr_context(char* input_arg) {
+
+    pANTLR3_INPUT_STREAM input = antlr3NewAsciiStringCopyStream((pANTLR3_UINT8)input_arg, (ANTLR3_UINT32)strlen(input_arg), NULL);
+
+    prnbwLexer lxr;
+    pANTLR3_COMMON_TOKEN_STREAM tstream;
+    prnbwParser psr;
+    rnbwParser_rnbw_return rnbwAST;
+
+    lxr = rnbwLexerNew(input);
+
+    if (lxr == NULL) {
+        fprintf(stderr, "Unable to create the lexer due to malloc() failure1\n");
+        exit(ANTLR3_ERR_NOMEM);
     }
-    b = n % 6;
-    n = (n - b) / 6;
-    g = n % 6;
-    n = (n - g) / 6;
-    r = n % 6;
+
+    tstream = antlr3CommonTokenStreamSourceNew(ANTLR3_SIZE_HINT, TOKENSOURCE(lxr));
+
+    if (tstream == NULL) {
+        fprintf(stderr, "Out of memory trying to allocate token stream\n");
+        exit(ANTLR3_ERR_NOMEM);
+    }
+
+    psr = rnbwParserNew(tstream);
+
+    if (tstream == NULL) {
+        fprintf(stderr, "Out of memory trying to allocate parser\n");
+        exit(ANTLR3_ERR_NOMEM);
+    }
+
+    rnbwAST = psr->rnbw(psr);
+
+    if (psr->pParser->rec->state->errorCount > 0) {
+        fprintf(stderr, "The parser returned %d errors, tree walking aborted.\n", psr->pParser->rec->state->errorCount);
+        throw std::runtime_error("parser err");
+    }
+    // else {
+    //     printf("1 Tree : %s\n", rnbwAST.tree->toStringTree(rnbwAST.tree)->chars);
+    // }
+
+    return (antlr_context_t){input, lxr, tstream, psr, rnbwAST};
 }
 
-void mkpath_aux(vector<unsigned> &path, unsigned &comp, int dcomp, unsigned cap, int coef, int common) {
-    while (comp != cap) {
-        comp += dcomp;
-        path.push_back(comp * coef + common + 16);
-    }
+void free_antlr_context_mem(antlr_context_t a) {
+    a.psr     ->free  (a.psr);      a.psr = NULL;
+    a.tstream ->free  (a.tstream);	a.tstream = NULL;
+    a.lxr	    ->free  (a.lxr);	    a.lxr = NULL;
+    a.input   ->close (a.input);	  a.input = NULL;
 }
 
-vector<unsigned> mkpath(unsigned from, unsigned to, path_order_t order) {
-    assert((from >= 16) && (from <= 231));
-    assert((to >= 16) && (to <= 231));
-
-    from -= 16;
-    to -= 16;
-
-    unsigned r1, g1, b1, r2, g2, b2;
-    extract_heximal_rgb(from, r1, g1, b1);
-    extract_heximal_rgb(to, r2, g2, b2);
-
-    int dr, dg, db;
-    (r2 > r1) ? dr = 1 : dr = -1;
-    (g2 > g1) ? dg = 1 : dg = -1;
-    (b2 > b1) ? db = 1 : db = -1;
-
-    vector<unsigned> path;
-    path.push_back(r1 * 36 + g1 * 6 + b1 + 16);
-    switch (order) {
-    case RGB:
-        mkpath_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
-        mkpath_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
-        mkpath_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
-        break;
-    case RBG:
-        mkpath_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
-        mkpath_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
-        mkpath_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
-        break;
-    case GRB:
-        mkpath_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
-        mkpath_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
-        mkpath_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
-        break;
-    case GBR:
-        mkpath_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
-        mkpath_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
-        mkpath_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
-        break;
-    case BRG:
-        mkpath_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
-        mkpath_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
-        mkpath_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
-        break;
-    case BGR:
-        mkpath_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
-        mkpath_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
-        mkpath_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
-        break;
-    }
-    return path;
-}
-
-vector<string> args_to_vector(int argc, char** argv) {
-    vector<string> res;
+unsigned getsize(int argc, char** argv) {
+    unsigned size = 0;
     for (int i = 1; i < argc; ++i) {
-        res.push_back(string(argv[i]));
+        size += strlen(argv[i]) + 1;
     }
-    return res;
+    return size;
 }
 
-unsigned parse_color(string col) {
-    if (std::isdigit(col[0])) {
-        return std::stoi(col);
-    } else {
-        return colornum_from_colorname(col);
+char* concat(int argc, char** argv) {
+    unsigned size = getsize(argc, argv);
+
+    char* retval = new char[size + 1]; // +1 for \0
+    strcpy(retval, argv[1]);
+    strcat(retval, " ");
+    for (int i = 2; i < argc; ++i) {
+        strcat(retval, argv[i]);
+        strcat(retval, " ");
     }
+    return retval;
 }
 
-bool is_option(string s) {
-    return (s[0] == '-');
+arg_parser_result_t mk_fake_res() {
+    arg_parser_result_t retval;
+
+    retval.path.push_back(196);
+    retval.path.push_back(208);
+    retval.path.push_back(220);
+    retval.path.push_back(255);
+
+    retval.angle = 0;
+    retval.width = 1;
+
+    return retval;
 }
 
-struct grad_t {
-     unsigned from;
-     unsigned to;
-     bool back;
-     bool including;
+class Node {
+    public:
+     explicit Node(pANTLR3_BASE_TREE ptr_arg) {
+         ptr = ptr_arg;
+         str = string((char*) ptr->toString(ptr)->chars);
+         child_n = ptr->getChildCount(ptr);;
+     }
+
+     Node getChild(unsigned i) {
+         return Node((pANTLR3_BASE_TREE) this->ptr->getChild(this->ptr, i));
+     }
+
+     pANTLR3_BASE_TREE ptr;
+     string str;
+     unsigned child_n;
 };
 
-vector<grad_t> parse_colors(vector<string>::iterator &it, vector<string>::iterator end) {
-    vector<grad_t> colors;
-    unsigned c1, c2;
-    do {
-        if ((it != end) && !is_option(*it)) {
-            c1 = parse_color(*it);
-            ++it;
-        } else {
-            throw std::runtime_error("rnbw: expected color after -c");
-        }
+arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
+    arg_parser_result_t retval;
 
-        if ((it != end) && !is_option(*it) && (*it == "to")) {
-            ++it;
-            if ((it != end) && !is_option(*it)) {
-                c2 = parse_color(*it);
-                ++it;
-            } else {
-                throw std::runtime_error("rnbw: expected color after 'to'");
-            }
+    path_sort_t  curr_sort;
+    path_order_t curr_order;
 
-            if ((it != end) && !is_option(*it) && (*it == "back")) {
-                ++it;
-                colors.push_back({c1, c2, true, false});
-                if ((it != end) && !is_option(*it) && (*it == "including")) {
-                    ++it;
-                    colors.push_back({c1, c2, true, true});
+    Node tree(tree_arg);
+
+    for (unsigned i = 0; i < tree.child_n; ++i) {
+        Node option(tree.getChild(i));
+
+        cout << option.str << endl;
+
+        if (option.str == "COLORS_OPT") {
+
+            for (unsigned j = 0; j < option.child_n; ++j) {
+                Node stripe(option.getChild(j));
+
+                cout << "  " << stripe.str << endl;
+
+                if (stripe.str == "COLORNUM") {
+
+                } else if (stripe.str == "COLORNAME") {
+
+                } else if (stripe.str == "RANGE") {
+                    string from_including = stripe.getChild(0).str;
+                    Node   from_color(stripe.getChild(1));
+
+                    string to_including = stripe.getChild(2).str;
+                    Node   to_color(stripe.getChild(3));
+
+                    string back = stripe.getChild(4).str;
+
+                    cout << "    " << from_including <<  " " << from_color.str << endl;
+                    cout << "    " << to_including <<  " " << to_color.str << endl;
+                    cout << "    " << back << endl;
+
+
+
                 }
-            } else {
-                colors.push_back({c1, c2, false, false});
             }
-        } else {
-            colors.push_back({c1, c1, false, false});
-        }
-    } while ((it != end) && !is_option(*it));
+        } else if (option.str == "PATH_OPT") {
+            string sort = option.getChild(0).str;
+            string order = option.getChild(1).str;
 
-    return colors;
-}
+            cout << "  " << sort << " " << order << endl;
+        } else if (option.str == "WIDTH_OPT") {
 
-path_order_t str_to_order(string s) {
-    for (auto & c: s) c = toupper(c);
+        } else if (option.str == "ANGLE_OPT") {
 
-    if (s == "RGB") {
-        return RGB;
-    } else if (s == "RBG") {
-        return RBG;
-    } else if (s == "GRB") {
-        return GRB;
-    } else if (s == "GBR") {
-        return GBR;
-    } else if (s == "BRG") {
-        return BRG;
-    } else if (s == "BGR") {
-        return BGR;
-    } else {
-     std::ostringstream err_msg;
-     err_msg << "rnbw: " << s << " does not designate RGB order";
-     throw std::runtime_error(err_msg.str());
-    }
-}
-
-path_order_t invert(path_order_t order) {
-    if (order == RGB) {
-        return BGR;
-    } else if (order == RBG) {
-        return GBR;
-    } else if (order == GRB) {
-        return BRG;
-    } else if (order == GBR) {
-        return RBG;
-    } else if (order == BRG) {
-        return GRB;
-    } else if (order == BGR) {
-        return RGB;
-    } else {
-        std::ostringstream err_msg;
-        err_msg << "rnbw: " << order << " does not designate RGB order";
-        throw std::runtime_error(err_msg.str());
-    }
-}
-
-vector<unsigned> getpath(vector<grad_t> colors, path_order_t order) {
-    vector<unsigned> path;
-    vector<unsigned> tmp_path;
-    for (auto it : colors) {
-        if (it.from == it.to) {
-            path.push_back(it.from);
-        } else {
-            tmp_path = mkpath(it.from, it.to, order);
-            path.insert(path.end(), tmp_path.begin(), tmp_path.end());
-            if (it.back) {
-                tmp_path = mkpath(it.to, it.from, invert(order));
-                path.insert(path.end(),
-                            tmp_path.begin() + 1,
-                            (it.including) ? tmp_path.end() : tmp_path.end() - 1);
-            }
         }
     }
-    return path;
+
+    return retval;
 }
 
 arg_parser_result_t parse_arguments(int argc, char** argv) {
-    arg_parser_result_t res;
+    char* script = concat(argc, argv);
+    antlr_context_t c = get_antlr_context(downcase_cstr(script));
+    delete[] script;
 
-    res.path = mkpath(33, 158, RGB);
-    res.angle = M_PI / 6;
-    res.width = 2;
+    printf("2 Tree : %s\n", c.ast.tree->toStringTree(c.ast.tree)->chars);
+    parse_tree(c.ast.tree);
 
-    vector<string> args = args_to_vector(argc, argv);
-    vector<string>::iterator it = args.begin();
-    vector<string>::iterator end = args.end();
-
-    path_order_t order;
-
-    vector<grad_t> colors;
-
-    while (it != end) {
-        if ((*it == "-c") || (*it == "--colors")) {
-            ++it;
-            colors = parse_colors(it, end);
-        } else if ((*it == "-o") || (*it == "--order")) {
-            ++it;
-            order = str_to_order(*it);
-            ++it;
-        } else if ((*it == "-a") || (*it == "--angle")) {
-            ++it;
-            res.angle = stoi(*it) * M_PI / 180;
-            ++it;
-        } else if ((*it == "-w") || (*it == "--width")) {
-            ++it;
-            res.width = stoi(*it);
-            ++it;
-        }
-    }
-
-    if (!colors.empty()) {
-        res.path = getpath(colors, order);
-    }
-    return res;
+    free_antlr_context_mem(c);
+    return mk_fake_res();
 }

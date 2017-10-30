@@ -14,9 +14,6 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-// TODO remove
-#define SPC << " " <<
-
 using std::cin;
 using std::cout;
 using std::endl;
@@ -24,8 +21,8 @@ using std::string;
 using std::vector;
 
 // settings
-const string escape = "\u001b[";
-const float eps = 0.0001;
+static const string escape = "\u001b[";
+static const float eps = 0.0001;
 
 inline void setf(unsigned c) {
     if (c < 16) {
@@ -71,7 +68,28 @@ int main(int argc, char** argv) {
         x_i = 0;
         it = line.begin();
         while(it != line.end()) {
-            x = cos(r.angle) * y_i + sin(r.angle) * x_i; // turn argument
+            /*   Find x coordinate of this point in the basis
+             *   turned by r.angle degrees counterclockwise
+             *   (when 90 degrees means no turning):
+             *       x = sin(r.angle) * x_i - cos(r.angle) * y_i;
+             *
+             *   And that is fine if you are drawing with (0,0)
+             *   in the lower left corner, but our (0,0) point
+             *   is in the upper left.
+             *
+             *   If you enter 30 degrees, then with the graph
+             *   flipped around Ox it would look like, 180 - 30 degrees
+             *   to you on the output.
+             *
+             *   So to flip a graph back I do r.angle = (180 - r.angle)
+             *
+             *   Considering
+             *      cos(180 - x) = -cos(x)
+             *      sin(180 - x) = sin(x)
+             *   there is the formula:
+             *      x = cos(r.angle) * y_i + sin(r.angle) * x_i;
+             */
+            x = cos(r.angle) * y_i + sin(r.angle) * x_i;
 
             if (fabs(ceil(x) - x) < eps) x = ceil(x); // fix errors
             if (fabs(floor(x) - x) < eps) x = floor(x);
@@ -93,10 +111,8 @@ int main(int argc, char** argv) {
             if (it != line.end()) {
                 one_utf8_char_out(it, line.end());
             }
-
             ++x_i;
         }
-
         cout << endl;
         ++y_i;
     }

@@ -5,18 +5,18 @@
 #include <sstream>
 
 struct rgb_t {
-     unsigned int r;
-     unsigned int g;
-     unsigned int b;
+     unsigned r, g, b;
 };
 
 rgb_t hex2rgb(std::string s);
 
 std::string rgb2hex(rgb_t rgb);
 
-std::string rgb2hex(unsigned int r, unsigned int g, unsigned int b);
+std::string rgb2hex(unsigned r, unsigned g, unsigned b);
 
 int colornum_from_colorname(std::string name);
+
+std::string colorname_from_colornum(unsigned num);
 
 struct clr_t {
      std::string name;

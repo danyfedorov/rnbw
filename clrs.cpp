@@ -62,3 +62,11 @@ int colornum_from_colorname(string name) {
     }
     return -1;
 }
+
+string colorname_from_colornum(unsigned num) {
+    if (colors[num].simpler_name != "") {
+        return colors[num].simpler_name;
+    } else {
+        return colors[num].name;
+    }
+}
