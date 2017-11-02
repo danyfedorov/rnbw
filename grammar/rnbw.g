@@ -104,7 +104,7 @@ lbrace:
     |     -> DEFAULT_INCLUDING ;
 
 arrow:
-      '->'  ->
+      '->'  -> NO_BACK
     | '<->' -> ^(BACK DEFAULT_INCLUDING)
     | '<i>' -> ^(BACK INCLUDING)
     | '<n>' -> ^(BACK NOT_INCLUDING) ;

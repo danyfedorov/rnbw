@@ -139,6 +139,10 @@ vector<unsigned> parse_range(Node stripe, path_sort_t sort, path_order_t order) 
     unsigned from_num = get_colornum(from_color);
     unsigned to_num = get_colornum(to_color);
 
+    // std::cout << "      " << from_including << " " << from_color.str << " " << from_color.getChild(0).str << std::endl;
+    // std::cout << "      " << to_including << " " << to_color.str << " " << to_color.getChild(0).str << std::endl;
+    // std::cout << "      " << back_node.ptr->toStringTree(back_node.ptr)->chars << std::endl;
+
     vector<unsigned> retval = mkpath(from_num, to_num, order, sort);
 
     if (from_including == "NOT_INCLUDING") {
@@ -193,19 +197,20 @@ arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
     vector<unsigned> path;
 
     Node tree(tree_arg);
+    // std::cout << tree.str << std::endl;
     for (unsigned i = 0; i < tree.child_n; ++i) {
 
         Node option(tree.getChild(i));
+        // std::cout << "  " << option.str << std::endl;
         if (option.str == "COLORS_OPT") {
             colors_opt = true;
             for (unsigned j = 0; j < option.child_n; ++j) {
 
                 Node stripe(option.getChild(j));
+                // std::cout << "    " << stripe.str << std::endl;
                 if ((stripe.str == "COLORNUM") || (stripe.str == "COLORNAME")) {
                     path.push_back(get_colornum(stripe));
                 } else if (stripe.str == "RANGE") {
-                    std::cout << stripe.ptr->toStringTree(stripe.ptr)->chars << std::endl;
-
                     vector<unsigned> v = parse_range(stripe, curr_sort, curr_order);
                     path.insert(path.end(), v.begin(), v.end());
                 }
@@ -213,6 +218,7 @@ arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
         } else if (option.str == "PATH_OPT") {
             string sort_str = option.getChild(0).str;
             string order_str = option.getChild(1).str;
+            // std::cout << "    " << sort_str << " " << order_str << std::endl;
 
             if (sort_str == "DEFAULT_PATH_SORT") {
                 curr_sort = EDGES;
@@ -227,8 +233,10 @@ arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
             }
         } else if (option.str == "WIDTH_OPT") {
             retval.width = std::stoi(option.getChild(0).str);
+            // std::cout << "    " << retval.width << std::endl;
         } else if (option.str == "ANGLE_OPT") {
             retval.angle = std::stoi(option.getChild(0).str) * M_PI / 180;
+            // std::cout << "    " << retval.angle << std::endl;
         }
     }
 
