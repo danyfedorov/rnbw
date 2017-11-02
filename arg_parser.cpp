@@ -133,7 +133,7 @@ vector<unsigned> parse_range(Node stripe, path_sort_t sort, path_order_t order) 
     string to_including = stripe.getChild(2).str;
     Node   to_color(stripe.getChild(3));
 
-    Node back_node = stripe.getChild(4); 
+    Node back_node = stripe.getChild(4);
     string back = back_node.str;
 
     unsigned from_num = get_colornum(from_color);
@@ -183,24 +183,29 @@ arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
     // defaults
     retval.width = 2;
     retval.angle = M_PI / 3;
+    retval.path = mk_rainbow();
+
+    path_sort_t  curr_sort = EDGES;
+    path_order_t curr_order = RGB;
+
+    bool colors_opt = false;
 
     vector<unsigned> path;
-    path = mk_rainbow();
-
-    path_sort_t  curr_sort;
-    path_order_t curr_order;
 
     Node tree(tree_arg);
     for (unsigned i = 0; i < tree.child_n; ++i) {
 
         Node option(tree.getChild(i));
         if (option.str == "COLORS_OPT") {
+            colors_opt = true;
             for (unsigned j = 0; j < option.child_n; ++j) {
 
                 Node stripe(option.getChild(j));
                 if ((stripe.str == "COLORNUM") || (stripe.str == "COLORNAME")) {
                     path.push_back(get_colornum(stripe));
                 } else if (stripe.str == "RANGE") {
+                    std::cout << stripe.ptr->toStringTree(stripe.ptr)->chars << std::endl;
+
                     vector<unsigned> v = parse_range(stripe, curr_sort, curr_order);
                     path.insert(path.end(), v.begin(), v.end());
                 }
@@ -227,7 +232,9 @@ arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
         }
     }
 
-    retval.path = path;
+    if (colors_opt) {
+        retval.path = path;
+    }
     return retval;
 }
 
