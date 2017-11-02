@@ -60,7 +60,7 @@ int colornum_from_colorname(string name) {
             return i;
         }
     }
-    return -1;
+    throw std::runtime_error("bad colorname");
 }
 
 string colorname_from_colornum(unsigned num) {

@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <assert.h>
 #include <iostream>
+#include <algorithm>
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -19,6 +20,14 @@ using std::vector;
 
 using std::cout;
 using std::endl;
+
+struct antlr_context_t {
+     pANTLR3_INPUT_STREAM input;
+     prnbwLexer lxr;
+     pANTLR3_COMMON_TOKEN_STREAM tstream;
+     prnbwParser psr;
+     rnbwParser_rnbw_return ast;
+};
 
 antlr_context_t get_antlr_context(char* input_arg) {
 
@@ -122,11 +131,73 @@ class Node {
      unsigned child_n;
 };
 
+unsigned get_colornum(Node color) {
+    if (color.str == "COLORNUM") {
+        return std::stoi(color.getChild(0).str);
+    } else if (color.str == "COLORNAME") {
+        return colornum_from_colorname(color.getChild(0).str);
+    } else {
+        throw std::runtime_error("bad color type to pass to get_colornum");
+    }
+}
+
+vector<unsigned> parse_range(Node stripe, path_sort_t sort, path_order_t order) {
+    string from_including = stripe.getChild(0).str;
+    Node   from_color(stripe.getChild(1));
+
+    string to_including = stripe.getChild(2).str;
+    Node   to_color(stripe.getChild(3));
+
+    Node back_node = stripe.getChild(4); 
+    string back = back_node.str;
+
+    cout << "    " << from_including <<  " " << from_color.str << " " << from_color.getChild(0).str << endl;
+    cout << "    " << to_including <<  " " << to_color.str << " " << to_color.getChild(0).str << endl;
+    cout << "    " << back << endl;
+
+    // cout << std::stoi(from_color.getChild(0).str) << endl;
+    // cout << std::stoi(to_color.getChild(0).str) << endl;
+    unsigned from_num = get_colornum(from_color);
+    unsigned to_num = get_colornum(to_color);
+    // cout << from_num << " " << to_num << endl;
+
+    vector<unsigned> retval = mkpath(from_num, to_num, order, sort);
+
+    if (from_including == "NOT_INCLUDING") {
+        retval.erase(retval.begin());
+    } else if (!((from_including == "DEFAULT_INCLUDING") || (from_including == "INCLUDING"))) {
+        throw std::runtime_error("not a valid including token");
+    }
+
+    if (to_including == "NOT_INCLUDING") {
+        retval.pop_back();
+    } else if (!((to_including == "DEFAULT_INCLUDING") || (to_including == "INCLUDING"))) {
+        throw std::runtime_error("not a valid including token");
+    }
+
+    if (back != "NO_BACK") {
+        string back_including = back_node.getChild(0).str;
+        vector<unsigned> reversed = retval;
+        std::reverse(reversed.begin(), reversed.end());
+        if ((back_including == "DEFAULT_INCLUDING") || (back_including == "NOT_INCLUDING")) {
+            retval.insert(retval.end(), reversed.begin() + 1, reversed.end() - 1);
+        } else if (back_including == "INCLUDING") {
+            retval.insert(retval.end(), reversed.begin() + 1, reversed.end());
+        } else {
+            throw std::runtime_error("not a valid including token");
+        }
+    }
+
+    return retval;
+}
+
 arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
     arg_parser_result_t retval;
 
     path_sort_t  curr_sort;
     path_order_t curr_order;
+
+    vector<unsigned> path;
 
     Node tree(tree_arg);
 
@@ -136,45 +207,43 @@ arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
         cout << option.str << endl;
 
         if (option.str == "COLORS_OPT") {
-
             for (unsigned j = 0; j < option.child_n; ++j) {
                 Node stripe(option.getChild(j));
 
                 cout << "  " << stripe.str << endl;
 
-                if (stripe.str == "COLORNUM") {
-
-                } else if (stripe.str == "COLORNAME") {
-
+                if ((stripe.str == "COLORNUM") || (stripe.str == "COLORNAME")) {
+                    path.push_back(get_colornum(stripe));
                 } else if (stripe.str == "RANGE") {
-                    string from_including = stripe.getChild(0).str;
-                    Node   from_color(stripe.getChild(1));
-
-                    string to_including = stripe.getChild(2).str;
-                    Node   to_color(stripe.getChild(3));
-
-                    string back = stripe.getChild(4).str;
-
-                    cout << "    " << from_including <<  " " << from_color.str << endl;
-                    cout << "    " << to_including <<  " " << to_color.str << endl;
-                    cout << "    " << back << endl;
-
-
-
+                    vector<unsigned> v = parse_range(stripe, curr_sort, curr_order);
+                    path.insert(path.end(), v.begin(), v.end());
                 }
             }
         } else if (option.str == "PATH_OPT") {
-            string sort = option.getChild(0).str;
-            string order = option.getChild(1).str;
+            string sort_str = option.getChild(0).str;
+            string order_str = option.getChild(1).str;
 
-            cout << "  " << sort << " " << order << endl;
+            cout << "  " << sort_str << " " << order_str << endl;
+
+            if (sort_str == "DEFAULT_PATH_SORT") {
+                curr_sort = EDGES;
+            } else {
+                curr_sort = str_to_sort(sort_str);
+            }
+
+            if (order_str == "DEFAULT_PATH_ORDER") {
+                curr_order = RGB;
+            } else {
+                curr_order = str_to_order(order_str);
+            }
         } else if (option.str == "WIDTH_OPT") {
-
+            retval.width = std::stoi(option.getChild(0).str);
         } else if (option.str == "ANGLE_OPT") {
-
+            retval.angle = std::stoi(option.getChild(0).str) * M_PI / 180;
         }
     }
 
+    retval.path = path;
     return retval;
 }
 
@@ -183,9 +252,10 @@ arg_parser_result_t parse_arguments(int argc, char** argv) {
     antlr_context_t c = get_antlr_context(downcase_cstr(script));
     delete[] script;
 
-    printf("2 Tree : %s\n", c.ast.tree->toStringTree(c.ast.tree)->chars);
-    parse_tree(c.ast.tree);
+    // printf("2 Tree : %s\n", c.ast.tree->toStringTree(c.ast.tree)->chars);
+    arg_parser_result_t res = parse_tree(c.ast.tree);
 
     free_antlr_context_mem(c);
-    return mk_fake_res();
+
+    return res;
 }

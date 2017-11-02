@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-./gentxt.sh | ./rnbw -p rgb -w 2 -a 60 -c from 33 to 158 and back , 22 , 44 , 55 , from including 55 to not including 222 and back including, from 1 to 3, from 3 to 1
+./gentxt.sh | ./rnbw -p rgb -w 1 -a 30 -c from 33 to 158 and back including, from 33 to 55, from 55 to 200 and back including -p bgr -c from 55 to 33

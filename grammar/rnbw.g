@@ -29,7 +29,7 @@ tokens
     DEFAULT_INCLUDING;
 
     // PATH_OPT
-    DEFAULT_ORDER;
+    DEFAULT_PATH_ORDER;
     DEFAULT_PATH_SORT;
 
 }
@@ -54,7 +54,7 @@ order:
     | 'gbr'
     | 'brg'
     | 'bgr'
-    | -> DEFAULT_ORDER ;
+    | -> DEFAULT_PATH_ORDER ;
 
 path_sort:
       'line'

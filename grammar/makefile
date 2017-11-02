@@ -1,15 +1,18 @@
-.PHONY: grammar_all
+.PHONY: grammar_all generate compile clean
 
 ANTLR=antlr3.2
 GRAMMAR=rnbw.g
+
+CC=gcc
+FILES=rnbwLexer.c rnbwLexer.h rnbwParser.c rnbwParser.h
 
 grammar_all: generate com
 
 generate: $(GRAMMAR)
 	$(ANTLR) $(GRAMMAR)
 
-com: main.c rnbwLexer.c rnbwLexer.h rnbwParser.c rnbwParser.h
-	gcc -g main.c rnbwLexer.c rnbwParser.c -lantlr3c
+compile: $(FILES)
+	$(CC) -c $(FILES)
 
 clean:
-	rm rnbwLexer.* rnbwParser.* rnbw.tokens
+	rm rnbwLexer.* rnbwParser.* rnbw.tokens *.h.gch *.o
