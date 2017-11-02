@@ -18,9 +18,6 @@
 using std::string;
 using std::vector;
 
-using std::cout;
-using std::endl;
-
 struct antlr_context_t {
      pANTLR3_INPUT_STREAM input;
      prnbwLexer lxr;
@@ -30,7 +27,6 @@ struct antlr_context_t {
 };
 
 antlr_context_t get_antlr_context(char* input_arg) {
-
     pANTLR3_INPUT_STREAM input = antlr3NewAsciiStringCopyStream((pANTLR3_UINT8)input_arg, (ANTLR3_UINT32)strlen(input_arg), NULL);
 
     prnbwLexer lxr;
@@ -41,22 +37,25 @@ antlr_context_t get_antlr_context(char* input_arg) {
     lxr = rnbwLexerNew(input);
 
     if (lxr == NULL) {
-        fprintf(stderr, "Unable to create the lexer due to malloc() failure1\n");
-        exit(ANTLR3_ERR_NOMEM);
+        throw std::runtime_error("Unable to create the lexer due to malloc() failure1\n");
+        // fprintf(stderr, "Unable to create the lexer due to malloc() failure1\n");
+        // exit(ANTLR3_ERR_NOMEM);
     }
 
     tstream = antlr3CommonTokenStreamSourceNew(ANTLR3_SIZE_HINT, TOKENSOURCE(lxr));
 
     if (tstream == NULL) {
-        fprintf(stderr, "Out of memory trying to allocate token stream\n");
-        exit(ANTLR3_ERR_NOMEM);
+        throw std::runtime_error("Out of memory trying to allocate token stream\n");
+        // fprintf(stderr, "Out of memory trying to allocate token stream\n");
+        // exit(ANTLR3_ERR_NOMEM);
     }
 
     psr = rnbwParserNew(tstream);
 
     if (tstream == NULL) {
-        fprintf(stderr, "Out of memory trying to allocate parser\n");
-        exit(ANTLR3_ERR_NOMEM);
+        throw std::runtime_error("Out of memory trying to allocate parser\n");
+        // fprintf(stderr, "Out of memory trying to allocate parser\n");
+        // exit(ANTLR3_ERR_NOMEM);
     }
 
     rnbwAST = psr->rnbw(psr);
@@ -72,14 +71,14 @@ antlr_context_t get_antlr_context(char* input_arg) {
     return (antlr_context_t){input, lxr, tstream, psr, rnbwAST};
 }
 
-void free_antlr_context_mem(antlr_context_t a) {
+void free_antlr_context(antlr_context_t a) {
     a.psr     ->free  (a.psr);      a.psr = NULL;
     a.tstream ->free  (a.tstream);	a.tstream = NULL;
     a.lxr	    ->free  (a.lxr);	    a.lxr = NULL;
     a.input   ->close (a.input);	  a.input = NULL;
 }
 
-unsigned getsize(int argc, char** argv) {
+unsigned get_argv_size(int argc, char** argv) {
     unsigned size = 0;
     for (int i = 1; i < argc; ++i) {
         size += strlen(argv[i]) + 1;
@@ -88,7 +87,7 @@ unsigned getsize(int argc, char** argv) {
 }
 
 char* concat(int argc, char** argv) {
-    unsigned size = getsize(argc, argv);
+    unsigned size = get_argv_size(argc, argv);
 
     char* retval = new char[size + 1]; // +1 for \0
     strcpy(retval, argv[1]);
@@ -97,20 +96,6 @@ char* concat(int argc, char** argv) {
         strcat(retval, argv[i]);
         strcat(retval, " ");
     }
-    return retval;
-}
-
-arg_parser_result_t mk_fake_res() {
-    arg_parser_result_t retval;
-
-    retval.path.push_back(196);
-    retval.path.push_back(208);
-    retval.path.push_back(220);
-    retval.path.push_back(255);
-
-    retval.angle = 0;
-    retval.width = 1;
-
     return retval;
 }
 
@@ -151,15 +136,8 @@ vector<unsigned> parse_range(Node stripe, path_sort_t sort, path_order_t order) 
     Node back_node = stripe.getChild(4); 
     string back = back_node.str;
 
-    cout << "    " << from_including <<  " " << from_color.str << " " << from_color.getChild(0).str << endl;
-    cout << "    " << to_including <<  " " << to_color.str << " " << to_color.getChild(0).str << endl;
-    cout << "    " << back << endl;
-
-    // cout << std::stoi(from_color.getChild(0).str) << endl;
-    // cout << std::stoi(to_color.getChild(0).str) << endl;
     unsigned from_num = get_colornum(from_color);
     unsigned to_num = get_colornum(to_color);
-    // cout << from_num << " " << to_num << endl;
 
     vector<unsigned> retval = mkpath(from_num, to_num, order, sort);
 
@@ -191,27 +169,35 @@ vector<unsigned> parse_range(Node stripe, path_sort_t sort, path_order_t order) 
     return retval;
 }
 
+vector<unsigned> mk_rainbow() {
+    vector<unsigned> retval = {196, \
+                               202, 208, 214, 220, 226, 190, 154, 118, 82, 46, 47, 48, 49, 43, 37, 31, \
+                               25, \
+                               31, 37, 43, 49, 48, 47, 46, 82, 118, 154, 190, 226, 220, 214, 208, 202};
+    return retval;
+}
+
 arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
     arg_parser_result_t retval;
+
+    // defaults
+    retval.width = 2;
+    retval.angle = M_PI / 3;
+
+    vector<unsigned> path;
+    path = mk_rainbow();
 
     path_sort_t  curr_sort;
     path_order_t curr_order;
 
-    vector<unsigned> path;
-
     Node tree(tree_arg);
-
     for (unsigned i = 0; i < tree.child_n; ++i) {
+
         Node option(tree.getChild(i));
-
-        cout << option.str << endl;
-
         if (option.str == "COLORS_OPT") {
             for (unsigned j = 0; j < option.child_n; ++j) {
+
                 Node stripe(option.getChild(j));
-
-                cout << "  " << stripe.str << endl;
-
                 if ((stripe.str == "COLORNUM") || (stripe.str == "COLORNAME")) {
                     path.push_back(get_colornum(stripe));
                 } else if (stripe.str == "RANGE") {
@@ -222,8 +208,6 @@ arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
         } else if (option.str == "PATH_OPT") {
             string sort_str = option.getChild(0).str;
             string order_str = option.getChild(1).str;
-
-            cout << "  " << sort_str << " " << order_str << endl;
 
             if (sort_str == "DEFAULT_PATH_SORT") {
                 curr_sort = EDGES;
@@ -248,14 +232,20 @@ arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
 }
 
 arg_parser_result_t parse_arguments(int argc, char** argv) {
-    char* script = concat(argc, argv);
-    antlr_context_t c = get_antlr_context(downcase_cstr(script));
-    delete[] script;
+    arg_parser_result_t res;
+    if (argc > 1) {
+        char* script = concat(argc, argv);
+        antlr_context_t c = get_antlr_context(downcase_cstr(script));
+        delete[] script;
 
-    // printf("2 Tree : %s\n", c.ast.tree->toStringTree(c.ast.tree)->chars);
-    arg_parser_result_t res = parse_tree(c.ast.tree);
+        res = parse_tree(c.ast.tree);
 
-    free_antlr_context_mem(c);
+        free_antlr_context(c);
+    } else {
+        res.width = 2;
+        res.angle = M_PI / 3;
+        res.path = mk_rainbow();
+    }
 
     return res;
 }

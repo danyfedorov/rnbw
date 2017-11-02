@@ -4,7 +4,6 @@ options
 {
     language = C;
     output = AST;
-    backtrack = true;
     ASTLabelType = pANTLR3_BASE_TREE;
 }
 

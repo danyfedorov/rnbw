@@ -128,8 +128,10 @@ vector<unsigned> mkpath(unsigned from, unsigned to, path_order_t order, path_sor
     path.push_back(r1 * 36 + g1 * 6 + b1 + 16);
     switch (sort) {
     case LINE:
+        // TODO
         break;
     case YARN:
+        // TODO
         break;
     case EDGES:
         switch (order) {
