@@ -300,7 +300,6 @@ void mkpath_yarn_sort(vector<unsigned> &path, rgb_t from, rgb_t to, path_order_t
     while (!((cur.r == to.r) && (cur.g == to.g) && (cur.b == to.b))) {
         prev = cur;
         cur = find_min_d_point(cur, from, to, dr, dg, db);
-        
         mkpath_edges_sort(path, prev, cur, order);
     }
 }
@@ -332,10 +331,10 @@ vector<unsigned> mkpath(unsigned from_10base, unsigned to_10base, path_order_t o
         mkpath_edges_sort(path, from, to, order);
     }
 
-    for (auto i : path) {
-        std::cout << i << " ";
-    }
-    cout << endl;
+    // for (auto i : path) {
+    //     std::cout << i << " ";
+    // }
+    // cout << endl;
 
     return path;
 }
