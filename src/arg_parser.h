@@ -12,6 +12,7 @@ struct arg_parser_result_t {
      float angle;
      unsigned width;
      std::string filename;
+     bool background;
 };
 
 arg_parser_result_t parse_arguments(int argc, char** argv);

@@ -12,10 +12,11 @@
 using std::vector;
 using std::string;
 
-#define WS << " " <<
-#define WS_ << " "
-using std::cout;
-using std::endl;
+#define SPC << " " <<
+#define PL(S) std::cout << S << std::endl
+#define NL std::cout << std::endl
+// using std::cout;
+// using std::endl;
 
 // utils
 
@@ -106,7 +107,7 @@ struct rgb_t {
 };
 
 // void prgb(string s, rgb_t a) {
-//     cout << s << ": " << a.r WS a.g WS a.b << endl;
+//     std::cout << s << ": " << a.r SPC a.g SPC a.b << std::endl;
 // }
 
 unsigned rgb2num(rgb_t rgb) {
@@ -304,21 +305,166 @@ void mkpath_yarn_sort(vector<unsigned> &path, rgb_t from, rgb_t to, path_order_t
     }
 }
 
+// entry points stuff
+
+unsigned grey_to_rgb(unsigned num) {
+    assert(num > 231);
+    switch (num) {
+    case 238: return 59;
+    case 244: return 102;
+    case 249: return 145;
+    case 252: return 188;
+    case 255: return 231;
+    }
+    // to calm the -Wall
+    return num;
+}
+
+unsigned rgb_to_grey(unsigned num) {
+    // PL("rgb2grey" SPC num);
+    switch (num) {
+    case 59: return 238;
+    case 102: return 244;
+    case 145: return 249;
+    case 188: return 252;
+    case 231: return 255;
+    }
+    throw std::runtime_error("wut1");
+}
+
+unsigned find_grey_corresponding_entry(unsigned num) {
+    assert(num > 231);
+    if (num <= 238) {
+        return 238;
+    } else if (num <= 244) {
+        return 244;
+    } else if (num <= 249) {
+        return 249;
+    } else if (num <= 252) {
+        return 252;
+    } else if (num <= 255) {
+        return 255;
+    }
+    // to calm the -Wall
+    return num;
+}
+
+unsigned come_to_grey_entry_point(vector<unsigned>& path, unsigned num) {
+    assert(num > 231);
+    unsigned to = find_grey_corresponding_entry(num);
+
+    for (unsigned i = num; i < to; ++i) {
+        path.push_back(i);
+    }
+
+    unsigned res = grey_to_rgb(to);
+    path.push_back(res);
+
+    return res;
+}
+
+unsigned find_rgb_corresponding_entry_point(unsigned num) {
+    assert(num < 16);
+    switch (num) {
+    case 0:  return 16;
+    case 1:  return 160;
+    case 2:  return 34;
+    case 3:  return 136;
+    case 4:  return 24;
+    case 5:  return 60;
+    case 6:  return 38;
+    case 7:  return 188;
+    case 8:  return 145;
+    case 9:  return 196;
+    case 10: return 82;
+    case 11: return 227;
+    case 12: return 67;
+    case 13: return 139;
+    case 14: return 51;
+    case 15: return 231;
+    }
+    // to calm the -Wall
+    return num;
+}
+
+unsigned come_to_entry_point(vector<unsigned>& path, unsigned num) {
+    unsigned newn;
+    if (num < 16) {
+        newn = find_rgb_corresponding_entry_point(num);
+        path.push_back(newn);
+    } else if (num > 231) {
+        newn = come_to_grey_entry_point(path, num);
+    } else {
+        newn = num;
+        path.push_back(num);
+    }
+    return newn;
+}
+
+unsigned find_corresponding_entry_point(unsigned num) {
+    if (num < 16) {
+        return find_rgb_corresponding_entry_point(num);
+    } else if (num > 231) {
+        return grey_to_rgb(find_grey_corresponding_entry(num));
+    } else {
+        return num;
+    }
+}
+
+inline bool isgrey(unsigned num) {
+    return ((num > 231) && (num < 256));
+}
+
+vector<unsigned> mk_grey_path(unsigned from, unsigned to) {
+    int d;
+    vector<unsigned> path;
+    (from < to) ? d = 1 : d = -1 ;
+    for (unsigned i = from; i != to; i += d) {
+        path.push_back(i);
+    }
+    path.push_back(to);
+
+    // for (auto i : path) {
+    //     std::cout << i << " ";
+    // }
+    // std::cout << std::endl;
+
+    return path;
+}
+
+void add_potential_grey_path(vector<unsigned>& path, unsigned from, unsigned to) {
+    if (isgrey(to)) {
+        unsigned grey_from = rgb_to_grey(from);
+        vector<unsigned> add = mk_grey_path(grey_from, to);
+        path.insert(path.end(), add.begin() + 1, add.end());
+    }
+}
+
 // toplevel mkpath
 
 vector<unsigned> mkpath(unsigned from_10base, unsigned to_10base, path_order_t order, path_sort_t sort) {
-    // TODO: make entry points
-    assert((from_10base >= 16) && (from_10base <= 231));
-    assert((to_10base >= 16) && (to_10base <= 231));
+    assert(from_10base < 256);
+    assert(to_10base < 256);
 
-    from_10base -= 16;
-    to_10base -= 16;
-
-    rgb_t from = num2rgb(from_10base);
-    rgb_t to = num2rgb(to_10base);
+    if (isgrey(from_10base) && isgrey(to_10base)) {
+        return mk_grey_path(from_10base, to_10base);
+    }
 
     vector<unsigned> path;
-    path.push_back((from.r * 36) + (from.g * 6) + from.b + 16);
+
+    // PL("before" SPC from_10base SPC to_10base);
+
+    from_10base = come_to_entry_point(path, from_10base);
+    unsigned new_to_10base;
+    new_to_10base = find_corresponding_entry_point(to_10base);
+
+    // PL("after" SPC from_10base SPC new_to_10base);
+
+    from_10base -= 16;
+    new_to_10base -= 16;
+
+    rgb_t from = num2rgb(from_10base);
+    rgb_t to = num2rgb(new_to_10base);
 
     switch (sort) {
     case LINE:
@@ -331,10 +477,12 @@ vector<unsigned> mkpath(unsigned from_10base, unsigned to_10base, path_order_t o
         mkpath_edges_sort(path, from, to, order);
     }
 
-    // for (auto i : path) {
-    //     std::cout << i << " ";
-    // }
-    // cout << endl;
+    add_potential_grey_path(path, new_to_10base + 16, to_10base);
+
+    for (auto i : path) {
+        std::cout << i << " ";
+    }
+    std::cout << std::endl;
 
     return path;
 }

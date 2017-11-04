@@ -16,6 +16,7 @@ tokens
     PATH_OPT;
     WIDTH_OPT;
     ANGLE_OPT;
+    BACKGROUND_OPT;
 
     // COLORS_OPT
     COLORNUM;
@@ -41,14 +42,16 @@ clause:
     |   colors_opt colors_def -> ^(COLORS_OPT colors_def)
 	|	path_opt   path_def   -> ^(PATH_OPT   path_def)
 	|	width_opt  INT        -> ^(WIDTH_OPT  INT)
-	|	angle_opt  INT        -> ^(ANGLE_OPT  INT) ;
+	|	angle_opt  INT        -> ^(ANGLE_OPT  INT)
+    |   background_opt        -> ^(BACKGROUND_OPT);
 
-help_opt:   '-h' | '--help'   ;
-colors_opt:	'-c' | '--colors' ;
-path_opt:	'-p' | '--path'   ;
-width_opt:	'-w' | '--width'  ;
-angle_opt:	'-a' | '--angle'  ;
-file_opt:   '-f' | '--file'   ;
+help_opt:       '-h' | '--help'       ;
+colors_opt:	    '-c' | '--colors'     ;
+path_opt:	    '-p' | '--path'       ;
+width_opt:	    '-w' | '--width'      ;
+angle_opt:	    '-a' | '--angle'      ;
+file_opt:       '-f' | '--file'       ;
+background_opt: '-b' | '--background' ;
 
 order:
       'rgb'

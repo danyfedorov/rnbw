@@ -26,7 +26,7 @@ static const string escape = "\u001b[";
 static const float eps = 0.0001;
 
 inline void setf(unsigned c) {
-    if (c < 16) {
+    if (c < 8) {
         cout << escape << c + 30 << "m";
     } else {
         cout << escape << "38;5;" << c << "m";
@@ -34,7 +34,7 @@ inline void setf(unsigned c) {
 }
 
 inline void setb(unsigned c) {
-    if (c < 16) {
+    if (c < 8) {
         cout << escape << c + 40 << "m";
     } else {
         cout << escape << "48;5;" << c << "m";
@@ -114,7 +114,12 @@ int main(int argc, char** argv) {
                 color_i = abs(floor(x / r.width));
                 color_i %= r.path.size();
             }
-            setf(r.path[color_i]);
+
+            if (r.background) {
+                setb(r.path[color_i]);
+            } else {
+                setf(r.path[color_i]);
+            }
 
             // one square unit is two chars
             // first char
@@ -125,11 +130,15 @@ int main(int argc, char** argv) {
             }
             ++x_i;
         }
+
+        reset();
         cout << endl;
+
         ++y_i;
     }
 
     f.close();
+    reset();
 
     return 0;
 }

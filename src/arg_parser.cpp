@@ -8,13 +8,13 @@
 #include <string>
 #include <cstring>
 #include <stdexcept>
-#include <assert.h>
 #include <iostream>
 #include <algorithm>
 
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+#define SPC << " " <<
 #define PL(S) std::cout << S << std::endl
 #define NL std::cout << std::endl
 
@@ -215,14 +215,20 @@ void print_help() {
     PL("  TODO");
 }
 
+arg_parser_result_t default_res() {
+    return {mk_rainbow(), M_PI / 3, 2, "", false};
+}
+
 arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
     arg_parser_result_t retval;
 
     // defaults
-    retval.width = 2;
-    retval.angle = M_PI / 3;
-    retval.path = mk_rainbow();
-    retval.filename = "";
+    retval = default_res();
+    // retval.width = 2;
+    // retval.angle = M_PI / 3;
+    // retval.path = mk_rainbow();
+    // retval.filename = "";
+    // retval.background = false;
 
     path_sort_t  curr_sort = EDGES;
     path_order_t curr_order = RGB;
@@ -273,8 +279,11 @@ arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
             retval.angle = std::stoi(option.getChild(0).str) * M_PI / 180;
             // PL("    " << retval.angle);
         } else if (option.str == "FILE_OPT") {
-            PL(option.getChild(0).str);
+            // PL("    " << option.getChild(0).str);
             exit(0);
+        } else if (option.str == "BACKGROUND_OPT") {
+            retval.background = true;
+            // PL("    " << true)
         } else if (option.str == "HELP_OPT") {
             print_help();
             exit(0);
@@ -286,10 +295,6 @@ arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
     }
 
     return retval;
-}
-
-arg_parser_result_t default_res() {
-    return {mk_rainbow(), M_PI / 3, 2, ""};
 }
 
 arg_parser_result_t parse_arguments(int argc, char** argv) {
