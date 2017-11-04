@@ -42,8 +42,7 @@ clause:
     |   colors_opt colors_def -> ^(COLORS_OPT colors_def)
 	|	path_opt   path_def   -> ^(PATH_OPT   path_def)
 	|	width_opt  INT        -> ^(WIDTH_OPT  INT)
-	|	angle_opt  INT        -> ^(ANGLE_OPT  INT)
-    |   file_opt   FILENAME   -> ^(FILE_OPT   FILENAME);
+	|	angle_opt  INT        -> ^(ANGLE_OPT  INT) ;
 
 help_opt:   '-h' | '--help'   ;
 colors_opt:	'-c' | '--colors' ;
@@ -138,10 +137,3 @@ WS: ( ' '
     | '\n'
     ) {$channel=HIDDEN;}
     ;
-
-FILENAME:
-        ('a'..'z'|'A'..'Z'|'0'..'9'
-        |'~'|'`'|'!'|'@'|'"'|'#'|'$'
-        |';'|'%'|'^'|':'|'&'|'('|')'
-        |'-'|'_'|'+'|'='|'/'|'.'|','
-        |'|'|'<'|'>'|'?'|'*'|'\\')+ ;

@@ -15,8 +15,8 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-#define __PL(S) std::cout << S << std::endl
-#define __NL std::cout << std::endl
+#define PL(S) std::cout << S << std::endl
+#define NL std::cout << std::endl
 
 using std::string;
 using std::vector;
@@ -186,11 +186,11 @@ vector<unsigned> mk_rainbow() {
 }
 
 void print_help() {
-    __PL("USAGE");
-    __PL("  rnbw [-c|--colors COLORS] [-w|--width WIDTH] [-a|--angle ANGLE] [-p|--path PATH] [-h|--help]");
-    __NL;
-    __PL("DESCRIPTION");
-    __PL("  TODO");
+    PL("USAGE");
+    PL("  rnbw [-c|--colors COLORS] [-w|--width WIDTH] [-a|--angle ANGLE] [-p|--path PATH] [-h|--help]");
+    NL;
+    PL("DESCRIPTION");
+    PL("  TODO");
 }
 
 arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
@@ -209,17 +209,17 @@ arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
     vector<unsigned> path;
 
     Node tree(tree_arg);
-    // __PL(tree.str)
+    // PL(tree.str)
     for (unsigned i = 0; i < tree.child_n; ++i) {
 
         Node option(tree.getChild(i));
-        // __PL("  " << option.str);
+        // PL("  " << option.str);
         if (option.str == "COLORS_OPT") {
             colors_opt = true;
             for (unsigned j = 0; j < option.child_n; ++j) {
 
                 Node stripe(option.getChild(j));
-                // __PL("    " << stripe.str);
+                // PL("    " << stripe.str);
                 if ((stripe.str == "COLORNUM") || (stripe.str == "COLORNAME")) {
                     path.push_back(get_colornum(stripe));
                 } else if (stripe.str == "RANGE") {
@@ -230,7 +230,7 @@ arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
         } else if (option.str == "PATH_OPT") {
             string sort_str = option.getChild(0).str;
             string order_str = option.getChild(1).str;
-            // __PL("    " << sort_str << " " << order_str);
+            // PL("    " << sort_str << " " << order_str);
 
             if (sort_str == "DEFAULT_PATH_SORT") {
                 curr_sort = EDGES;
@@ -245,12 +245,12 @@ arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
             }
         } else if (option.str == "WIDTH_OPT") {
             retval.width = std::stoi(option.getChild(0).str);
-            // __PL("    " << retval.width);
+            // PL("    " << retval.width);
         } else if (option.str == "ANGLE_OPT") {
             retval.angle = std::stoi(option.getChild(0).str) * M_PI / 180;
-            // __PL("    " << retval.angle);
+            // PL("    " << retval.angle);
         } else if (option.str == "FILE_OPT") {
-            __PL(option.getChild(0).str);
+            PL(option.getChild(0).str);
             exit(0);
         } else if (option.str == "HELP_OPT") {
             print_help();
@@ -269,15 +269,37 @@ arg_parser_result_t default_res() {
     return {mk_rainbow(), M_PI / 3, 2};
 }
 
+string pick_filename(int &argc, char** argv) {
+    string filename = "";
+    string str_arg;
+    bool shift = false;
+    int i = 0;
+    while (i < argc) {
+        str_arg = string(argv[i]);
+        if ((str_arg == "--file") || (str_arg == "-f")) {
+            ++i;
+            filename = string(argv[i]);
+            shift = true;
+        } else if (shift) {
+            argv[i - 2] = argv[i];
+        }
+        ++i;
+    }
+    return filename;
+}
+
 arg_parser_result_t parse_arguments(int argc, char** argv) {
     arg_parser_result_t res;
     if (argc > 1) {
+        string filename = pick_filename(argc, argv);
+        PL("filename:\n" << filename);
         char* script = concat(argc, argv);
+
         antlr_context_t c = get_antlr_context(downcase_cstr(script));
-        // __PL("script:\n  " << script);
+        PL("script:\n  " << script);
         delete[] script;
 
-        // __PL("tree:\n  " << c.ast.tree->toStringTree(c.ast.tree)->chars);
+        PL("tree:\n  " << c.ast.tree->toStringTree(c.ast.tree)->chars);
 
         if (c.ast.tree->getChildCount(c.ast.tree) > 0) {
             res = parse_tree(c.ast.tree);
