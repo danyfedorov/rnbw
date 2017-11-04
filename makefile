@@ -38,7 +38,7 @@ arg_parser.o: src/arg_parser.h src/arg_parser.cpp
 core.o: src/core.h src/core.cpp
 	$(CC) $(FLAGS) -c src/core.h src/core.cpp
 
-clean: clean_objs
+clean:
 	rm rnbw *~ main.lst main.s a.out 2>/dev/null || true
 
 # asm:

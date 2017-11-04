@@ -15,6 +15,8 @@ tokens
     PATH_OPT;
     WIDTH_OPT;
     ANGLE_OPT;
+    HELP_OPT;
+    FILE_OPT;
 
     // COLORS_OPT
     COLORNUM;
@@ -36,15 +38,19 @@ tokens
 rnbw: clause* -> ^(TOP clause*) ;
 
 clause:
-        colors_opt colors_def -> ^(COLORS_OPT colors_def)
+        help_opt              -> ^(HELP_OPT)
+    |   colors_opt colors_def -> ^(COLORS_OPT colors_def)
 	|	path_opt   path_def   -> ^(PATH_OPT   path_def)
 	|	width_opt  INT        -> ^(WIDTH_OPT  INT)
-	|	angle_opt  INT        -> ^(ANGLE_OPT  INT) ;
+	|	angle_opt  INT        -> ^(ANGLE_OPT  INT)
+    |   file_opt   FILENAME   -> ^(FILE_OPT   FILENAME) ;
 
+help_opt:   '-h' | '--help' | 'help' ;
 colors_opt:	'-c' | '--colors' ;
 path_opt:	'-p' | '--path'   ;
 width_opt:	'-w' | '--width'  ;
 angle_opt:	'-a' | '--angle'  ;
+file_opt:   '-f' | '--file'   ;
 
 order:
       'rgb'
@@ -120,15 +126,14 @@ color:
 
 // L
 
-ID:	('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9'|'-')*
-    ;
+ID:	('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9'|'-')* ;
 
-INT: '0'..'9'+
-    ;
+INT: '0'..'9'+ ;
+
+FILENAME: ('a'..'z'|'A'..'Z'|'0'..'9'|'-'|'!'|'@'|'#'|'$'|'%'|'^'|'&'|'('|')'|'+'|'='|'_'|'~'|'.'|','|':'|' '|'/'|';')+ ;
 
 WS: ( ' '
     | '\t'
     | '\r'
     | '\n'
-    ) {$channel=HIDDEN;}
-    ;
+    ) {$channel=HIDDEN;} ;
