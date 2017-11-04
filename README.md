@@ -8,7 +8,7 @@ WIP
 
 TODO
 
-See more at [](exampoles/README.md)
+See more at [](https://github.com/bugdie4k/rnbw/tree/master/examples/README.md)
 
 ### Syntax 
 
