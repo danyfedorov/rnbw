@@ -34,7 +34,9 @@ run: all
 
 # files
 arg_parser.o: arg_parser.h arg_parser.cpp
-	$(CC) $(FLAGS) -c arg_parser.cpp arg_parser.h
+	$(CC) $(FLAGS) -c arg_parser.h arg_parser.cpp
+core.o: core.h core.cpp
+	$(CC) $(FLAGS) -c core.h core.cpp
 
 # asm:
 # 	g++ -S -g main.cpp -o main.s

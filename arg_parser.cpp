@@ -37,7 +37,7 @@ antlr_context_t get_antlr_context(char* input_arg) {
     lxr = rnbwLexerNew(input);
 
     if (lxr == NULL) {
-        throw std::runtime_error("Unable to create the lexer due to malloc() failure1\n");
+        throw std::runtime_error("rnbw: Unable to create the lexer due to malloc() failure1\n");
         // fprintf(stderr, "Unable to create the lexer due to malloc() failure1\n");
         // exit(ANTLR3_ERR_NOMEM);
     }
@@ -45,7 +45,7 @@ antlr_context_t get_antlr_context(char* input_arg) {
     tstream = antlr3CommonTokenStreamSourceNew(ANTLR3_SIZE_HINT, TOKENSOURCE(lxr));
 
     if (tstream == NULL) {
-        throw std::runtime_error("Out of memory trying to allocate token stream\n");
+        throw std::runtime_error("rnbw: Out of memory trying to allocate token stream\n");
         // fprintf(stderr, "Out of memory trying to allocate token stream\n");
         // exit(ANTLR3_ERR_NOMEM);
     }
@@ -53,7 +53,7 @@ antlr_context_t get_antlr_context(char* input_arg) {
     psr = rnbwParserNew(tstream);
 
     if (tstream == NULL) {
-        throw std::runtime_error("Out of memory trying to allocate parser\n");
+        throw std::runtime_error("rnbw: Out of memory trying to allocate parser\n");
         // fprintf(stderr, "Out of memory trying to allocate parser\n");
         // exit(ANTLR3_ERR_NOMEM);
     }
@@ -61,7 +61,7 @@ antlr_context_t get_antlr_context(char* input_arg) {
     rnbwAST = psr->rnbw(psr);
 
     if (psr->pParser->rec->state->errorCount > 0) {
-        fprintf(stderr, "The parser returned %d errors, tree walking aborted.\n", psr->pParser->rec->state->errorCount);
+        fprintf(stderr, "rnbw: The parser returned %d errors, tree walking aborted.\n", psr->pParser->rec->state->errorCount);
         throw std::runtime_error("parser err");
     }
     // else {
@@ -174,10 +174,11 @@ vector<unsigned> parse_range(Node stripe, path_sort_t sort, path_order_t order) 
 }
 
 vector<unsigned> mk_rainbow() {
-    vector<unsigned> retval = {196, \
-                               202, 208, 214, 220, 226, 190, 154, 118, 82, 46, 47, 48, 49, 43, 37, 31, \
-                               25, \
-                               31, 37, 43, 49, 48, 47, 46, 82, 118, 154, 190, 226, 220, 214, 208, 202};
+    vector<unsigned> retval =
+        {196,
+         202, 208, 214, 220, 226, 190, 154, 118, 82, 46, 47, 48, 49, 43, 37, 31,
+         25,
+         31, 37, 43, 49, 48, 47, 46, 82, 118, 154, 190, 226, 220, 214, 208, 202};
     return retval;
 }
 
@@ -243,7 +244,12 @@ arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
     if (colors_opt) {
         retval.path = path;
     }
+
     return retval;
+}
+
+arg_parser_result_t default_res() {
+    return {mk_rainbow(), M_PI / 3, 2};
 }
 
 arg_parser_result_t parse_arguments(int argc, char** argv) {
@@ -253,13 +259,15 @@ arg_parser_result_t parse_arguments(int argc, char** argv) {
         antlr_context_t c = get_antlr_context(downcase_cstr(script));
         delete[] script;
 
-        res = parse_tree(c.ast.tree);
+        if (c.ast.tree->getChildCount(c.ast.tree) > 0) {
+            res = parse_tree(c.ast.tree);
+        } else {
+            res = default_res();
+        }
 
         free_antlr_context(c);
     } else {
-        res.width = 2;
-        res.angle = M_PI / 3;
-        res.path = mk_rainbow();
+        res = default_res();
     }
 
     return res;

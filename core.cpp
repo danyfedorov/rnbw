@@ -5,9 +5,17 @@
 #include <sstream>
 #include <stdexcept>
 #include <assert.h>
+#include <iostream>
+
+#include <math.h>
 
 using std::vector;
 using std::string;
+
+#define WS << " " <<
+#define WS_ << " "
+using std::cout;
+using std::endl;
 
 string upcase_str(string &s) {
     for (auto & c: s) c = toupper(c);
@@ -87,17 +95,44 @@ path_order_t invert_order(path_order_t order) {
     }
 }
 
-void extract_heximal_rgb(unsigned n, unsigned &r, unsigned &g, unsigned &b) {
+struct rgb_t {
+     unsigned r, g, b;
+};
+
+// TODO: clean
+void prgb(string s, rgb_t a) {
+    cout << s << ": " << a.r WS a.g WS a.b << endl;
+}
+
+unsigned rgb2num(rgb_t rgb) {
+    return rgb.r * 36 + rgb.g * 6 + rgb.b;
+}
+
+rgb_t num2rgb(unsigned n) {
     if (n > 215) {
         std::ostringstream err_msg;
         err_msg << "rnbw: " << n << " is over 215";
         throw std::runtime_error(err_msg.str());
     }
+    unsigned r, g, b;
     b = n % 6;
     n = (n - b) / 6;
     g = n % 6;
     n = (n - g) / 6;
     r = n % 6;
+    return {r, g, b};
+}
+
+void unpack_rgb(rgb_t rgb, unsigned &r, unsigned &g, unsigned &b) {
+    r = rgb.r;
+    g = rgb.g;
+    b = rgb.b;
+}
+
+void deltas(rgb_t from, rgb_t to, int &dr, int &dg, int &db) {
+    (to.r > from.r) ? dr = 1 : dr = -1;
+    (to.g > from.g) ? dg = 1 : dg = -1;
+    (to.b > from.b) ? db = 1 : db = -1;
 }
 
 void mkpath_edges_sort_aux(vector<unsigned> &path, unsigned &comp, int dcomp, unsigned cap, int coef, int common) {
@@ -107,65 +142,202 @@ void mkpath_edges_sort_aux(vector<unsigned> &path, unsigned &comp, int dcomp, un
     }
 }
 
-vector<unsigned> mkpath(unsigned from, unsigned to, path_order_t order, path_sort_t sort) {
-    // TODO: make entry points
-    assert((from >= 16) && (from <= 231));
-    assert((to >= 16) && (to <= 231));
-
-    from -= 16;
-    to -= 16;
-
+void mkpath_edges_sort(vector<unsigned> &path, rgb_t from, rgb_t to, path_order_t order) {
     unsigned r1, g1, b1, r2, g2, b2;
-    extract_heximal_rgb(from, r1, g1, b1);
-    extract_heximal_rgb(to, r2, g2, b2);
+    unpack_rgb(from, r1, g1, b1);
+    unpack_rgb(to, r2, g2, b2);
 
     int dr, dg, db;
-    (r2 > r1) ? dr = 1 : dr = -1;
-    (g2 > g1) ? dg = 1 : dg = -1;
-    (b2 > b1) ? db = 1 : db = -1;
+    deltas(from, to, dr, dg, db);
+
+    switch (order) {
+    case RGB:
+        mkpath_edges_sort_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
+        mkpath_edges_sort_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
+        mkpath_edges_sort_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
+        break;
+    case RBG:
+        mkpath_edges_sort_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
+        mkpath_edges_sort_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
+        mkpath_edges_sort_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
+        break;
+    case GRB:
+        mkpath_edges_sort_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
+        mkpath_edges_sort_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
+        mkpath_edges_sort_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
+        break;
+    case GBR:
+        mkpath_edges_sort_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
+        mkpath_edges_sort_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
+        mkpath_edges_sort_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
+        break;
+    case BRG:
+        mkpath_edges_sort_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
+        mkpath_edges_sort_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
+        mkpath_edges_sort_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
+        break;
+    case BGR:
+        mkpath_edges_sort_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
+        mkpath_edges_sort_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
+        mkpath_edges_sort_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
+        break;
+    }
+}
+
+inline int determinant(int a, int b, int c, int d) {
+    // cout << "    det: " << a WS b WS c WS d WS "=>" WS a * d - b * c << endl;
+    return a * d - b * c;
+}
+
+/* Point to line distance from p0 point to p1 -> p2 line
+ *
+ * The formula is:
+ *   d01 = | [(r0 - r1) * s] | / |s|,
+ * Where
+ *   [a*b] - cross product
+ *   |a|   - length of the a vector
+ *   r0 - radius vector of a p0 point
+ *   r1 - radius vector of a point on a line (p1 or p2 for instance)
+ *   s  - vector parallel to the p1 -> p2 line
+ *
+ * Reference:
+ *   http://cyclowiki.org/wiki/Расстояние_от_точки_до_прямой_в_трёхмерном_пространстве
+ *
+ * I use the second formula where cross product and length are expanded
+ */
+float distance_pl(rgb_t p1, rgb_t p2, rgb_t p0) {
+    unsigned r0, g0, b0;
+    unsigned r1, g1, b1;
+    unsigned r2, g2, b2;
+
+    unpack_rgb(p0, r0, g0, b0);
+    unpack_rgb(p1, r1, g1, b1);
+    unpack_rgb(p2, r2, g2, b2);
+
+    int l = r2 - r1;
+    int m = g2 - g1;
+    int n = b2 - b1;
+
+    int i = determinant(r0 - r1, g0 - g1, l, m);
+    int j = determinant(g0 - g1, b0 - b1, m, n);
+    int k = determinant(b0 - b1, r0 - r1, n, l);
+
+    // prgb("  point", p0);
+    // cout << "  ijk " WS i WS j WS k WS endl;
+
+    return sqrt(i*i + j*j + k*k) / sqrt(l*l + m*m + n*n);
+}
+
+rgb_t find_min_d_point(rgb_t cur, rgb_t from, rgb_t to, int dr, int dg, int db) {
+    unsigned r1, g1, b1;
+    unsigned r2, g2, b2;
+    unsigned rc, gc, bc;
+
+    unpack_rgb(from, r1, g1, b1);
+    unpack_rgb(to, r2, g2, b2);
+    unpack_rgb(cur, rc, gc, bc);
+
+    float d; // distance
+    float min_d;
+    rgb_t point;
+    rgb_t min_d_point;
+    bool first = true;
+
+    rc = cur.r;
+    for (unsigned i = 0; i < 2; ++i) {
+        gc = cur.g;
+        for (unsigned j = 0; j < 2; ++j) {
+            bc = cur.b;
+            for (unsigned k = 0; k < 2; ++k) {
+                if (! ((i == 0) && (j == 0) && (k == 0))) {
+                    point = {rc, gc, bc};
+                    d = distance_pl(from, to, point);
+
+                    // prgb("rgbc", {rc, gc, bc});
+                    // std::cout << "distance: " << d << std::endl;
+
+                    if (first) {
+                        min_d = d;
+                        min_d_point = point;
+                        first = false;
+                    } else if (d < min_d) {
+                        min_d = d;
+                        min_d_point = point;
+                    }
+
+                }
+                bc += db;
+            }
+            gc += dg;
+        }
+        rc += dr;
+    }
+
+    // cout << "-->MIN D: " << min_d << endl;
+    // prgb("--> MIN POINT", min_d_point);
+
+    return min_d_point;
+}
+
+void mkpath_line_sort(vector<unsigned> &path, rgb_t from, rgb_t to) {
+
+    // prgb("from", from);
+    // prgb("to", to);
+
+    unsigned r1, g1, b1;
+    unsigned r2, g2, b2;
+
+    unpack_rgb(from, r1, g1, b1);
+    unpack_rgb(to, r2, g2, b2);
+
+    int dr, dg, db;
+    deltas(from, to, dr, dg, db);
+
+    rgb_t cur = from;
+    while (!((cur.r == to.r) && (cur.g == to.g) && (cur.b == to.b))) {
+
+        // prgb("cur0", cur);
+        // cout << "deltas: " << dr WS dg WS db << endl;
+
+        cur = find_min_d_point(cur, from, to, dr, dg, db);
+
+        // prgb("cur", cur);
+        // cout << "cur num: " << rgb2num(cur) + 16 << endl;
+        // cout << "--------" << endl;
+
+        path.push_back(rgb2num(cur) + 16);
+    }
+}
+
+vector<unsigned> mkpath(unsigned from_10base, unsigned to_10base, path_order_t order, path_sort_t sort) {
+    // TODO: make entry points
+    assert((from_10base >= 16) && (from_10base <= 231));
+    assert((to_10base >= 16) && (to_10base <= 231));
+
+    from_10base -= 16;
+    to_10base -= 16;
+
+    rgb_t from = num2rgb(from_10base);
+    rgb_t to = num2rgb(to_10base);
 
     vector<unsigned> path;
-    path.push_back(r1 * 36 + g1 * 6 + b1 + 16);
+    path.push_back((from.r * 36) + (from.g * 6) + from.b + 16);
+
     switch (sort) {
     case LINE:
-        // TODO
+        mkpath_line_sort(path, from, to);
         break;
     case YARN:
         // TODO
         break;
     case EDGES:
-        switch (order) {
-        case RGB:
-            mkpath_edges_sort_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
-            mkpath_edges_sort_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
-            mkpath_edges_sort_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
-            break;
-        case RBG:
-            mkpath_edges_sort_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
-            mkpath_edges_sort_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
-            mkpath_edges_sort_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
-            break;
-        case GRB:
-            mkpath_edges_sort_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
-            mkpath_edges_sort_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
-            mkpath_edges_sort_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
-            break;
-        case GBR:
-            mkpath_edges_sort_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
-            mkpath_edges_sort_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
-            mkpath_edges_sort_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
-            break;
-        case BRG:
-            mkpath_edges_sort_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
-            mkpath_edges_sort_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
-            mkpath_edges_sort_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
-            break;
-        case BGR:
-            mkpath_edges_sort_aux(path, b1, db, b2, 1, r1 * 36 + g1 * 6);
-            mkpath_edges_sort_aux(path, g1, dg, g2, 6, r1 * 36 + b1);
-            mkpath_edges_sort_aux(path, r1, dr, r2, 36, g1 * 6 + b1);
-            break;
-        }
+        mkpath_edges_sort(path, from, to, order);
     }
+
+    for (auto i : path) {
+        std::cout << i << " ";
+    }
+    cout << endl;
+
     return path;
 }
