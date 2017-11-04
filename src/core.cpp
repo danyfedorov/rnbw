@@ -12,9 +12,9 @@
 using std::vector;
 using std::string;
 
-#define SPC << " " <<
-#define PL(S) std::cout << S << std::endl
-#define NL std::cout << std::endl
+// #define SPC << " " <<
+// #define PL(S) std::cout << S << std::endl
+// #define NL std::cout << std::endl
 // using std::cout;
 // using std::endl;
 
@@ -479,10 +479,10 @@ vector<unsigned> mkpath(unsigned from_10base, unsigned to_10base, path_order_t o
 
     add_potential_grey_path(path, new_to_10base + 16, to_10base);
 
-    for (auto i : path) {
-        std::cout << i << " ";
-    }
-    std::cout << std::endl;
+    // for (auto i : path) {
+    //     std::cout << i << " ";
+    // }
+    // std::cout << std::endl;
 
     return path;
 }
