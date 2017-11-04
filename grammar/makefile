@@ -6,7 +6,7 @@ GRAMMAR=rnbw.g
 CC=gcc
 FILES=rnbwLexer.c rnbwLexer.h rnbwParser.c rnbwParser.h
 
-grammar_all: generate com
+grammar_all: generate compile
 
 generate: $(GRAMMAR)
 	$(ANTLR) $(GRAMMAR)

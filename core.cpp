@@ -17,6 +17,8 @@ using std::string;
 using std::cout;
 using std::endl;
 
+// utils
+
 string upcase_str(string &s) {
     for (auto & c: s) c = toupper(c);
     return s;
@@ -36,6 +38,8 @@ char* downcase_cstr(char* s) {
     for (char* ch = s; *ch; ++ch) *ch = tolower(*ch);
     return s;
 }
+
+// sort and order enums operations
 
 path_order_t str_to_order(string s) {
     upcase_str(s);
@@ -95,14 +99,15 @@ path_order_t invert_order(path_order_t order) {
     }
 }
 
+// rgb_t
+
 struct rgb_t {
      unsigned r, g, b;
 };
 
-// TODO: clean
-void prgb(string s, rgb_t a) {
-    cout << s << ": " << a.r WS a.g WS a.b << endl;
-}
+// void prgb(string s, rgb_t a) {
+//     cout << s << ": " << a.r WS a.g WS a.b << endl;
+// }
 
 unsigned rgb2num(rgb_t rgb) {
     return rgb.r * 36 + rgb.g * 6 + rgb.b;
@@ -134,6 +139,8 @@ void deltas(rgb_t from, rgb_t to, int &dr, int &dg, int &db) {
     (to.g > from.g) ? dg = 1 : dg = -1;
     (to.b > from.b) ? db = 1 : db = -1;
 }
+
+// mkpath edges sort
 
 void mkpath_edges_sort_aux(vector<unsigned> &path, unsigned &comp, int dcomp, unsigned cap, int coef, int common) {
     while (comp != cap) {
@@ -184,8 +191,9 @@ void mkpath_edges_sort(vector<unsigned> &path, rgb_t from, rgb_t to, path_order_
     }
 }
 
+// mkpath line sort
+
 inline int determinant(int a, int b, int c, int d) {
-    // cout << "    det: " << a WS b WS c WS d WS "=>" WS a * d - b * c << endl;
     return a * d - b * c;
 }
 
@@ -222,9 +230,6 @@ float distance_pl(rgb_t p1, rgb_t p2, rgb_t p0) {
     int j = determinant(g0 - g1, b0 - b1, m, n);
     int k = determinant(b0 - b1, r0 - r1, n, l);
 
-    // prgb("  point", p0);
-    // cout << "  ijk " WS i WS j WS k WS endl;
-
     return sqrt(i*i + j*j + k*k) / sqrt(l*l + m*m + n*n);
 }
 
@@ -253,9 +258,6 @@ rgb_t find_min_d_point(rgb_t cur, rgb_t from, rgb_t to, int dr, int dg, int db) 
                     point = {rc, gc, bc};
                     d = distance_pl(from, to, point);
 
-                    // prgb("rgbc", {rc, gc, bc});
-                    // std::cout << "distance: " << d << std::endl;
-
                     if (first) {
                         min_d = d;
                         min_d_point = point;
@@ -273,41 +275,37 @@ rgb_t find_min_d_point(rgb_t cur, rgb_t from, rgb_t to, int dr, int dg, int db) 
         rc += dr;
     }
 
-    // cout << "-->MIN D: " << min_d << endl;
-    // prgb("--> MIN POINT", min_d_point);
-
     return min_d_point;
 }
 
 void mkpath_line_sort(vector<unsigned> &path, rgb_t from, rgb_t to) {
-
-    // prgb("from", from);
-    // prgb("to", to);
-
-    unsigned r1, g1, b1;
-    unsigned r2, g2, b2;
-
-    unpack_rgb(from, r1, g1, b1);
-    unpack_rgb(to, r2, g2, b2);
-
     int dr, dg, db;
     deltas(from, to, dr, dg, db);
 
     rgb_t cur = from;
     while (!((cur.r == to.r) && (cur.g == to.g) && (cur.b == to.b))) {
-
-        // prgb("cur0", cur);
-        // cout << "deltas: " << dr WS dg WS db << endl;
-
         cur = find_min_d_point(cur, from, to, dr, dg, db);
-
-        // prgb("cur", cur);
-        // cout << "cur num: " << rgb2num(cur) + 16 << endl;
-        // cout << "--------" << endl;
-
         path.push_back(rgb2num(cur) + 16);
     }
 }
+
+// mkpath yarn sort
+
+void mkpath_yarn_sort(vector<unsigned> &path, rgb_t from, rgb_t to, path_order_t order) {
+    int dr, dg, db;
+    deltas(from, to, dr, dg, db);
+
+    rgb_t cur = from;
+    rgb_t prev;
+    while (!((cur.r == to.r) && (cur.g == to.g) && (cur.b == to.b))) {
+        prev = cur;
+        cur = find_min_d_point(cur, from, to, dr, dg, db);
+        
+        mkpath_edges_sort(path, prev, cur, order);
+    }
+}
+
+// toplevel mkpath
 
 vector<unsigned> mkpath(unsigned from_10base, unsigned to_10base, path_order_t order, path_sort_t sort) {
     // TODO: make entry points
@@ -328,7 +326,7 @@ vector<unsigned> mkpath(unsigned from_10base, unsigned to_10base, path_order_t o
         mkpath_line_sort(path, from, to);
         break;
     case YARN:
-        // TODO
+        mkpath_yarn_sort(path, from, to, order);
         break;
     case EDGES:
         mkpath_edges_sort(path, from, to, order);
