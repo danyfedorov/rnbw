@@ -2,7 +2,7 @@ Run examples with `./run-examples.sh N` where `N` is the number of the script.
 
 **script-0.rnbw**  
 
-The simplest example is just a list the color numbers.  
+The simplest example is just a list of color numbers.  
 
 ```
 --width  2     
@@ -25,7 +25,7 @@ Notice that the same result can be achieved with the following script.
   
 **script-2.rnbw**  
 
-Notice `<->`. It makes colors go from 33 to 158 and then back to 33 (not including the last 33).
+Notice how `<->` makes colors go from 33 to 158 and then back to 33 (not including the last 33).  
 Also notice changes in `--width` and `--angle` option.  
 
 ```
