@@ -4,10 +4,10 @@ CC=g++
 NAME=rnbw
 LIBS=-lantlr3c
 FLAGS=-std=c++11 -Wall
-FILES=main.cpp \
-      clrs.cpp clrs.h \
-      core.cpp core.h \
-      arg_parser.cpp arg_parser.h
+FILES=src/main.cpp \
+      src/clrs.cpp src/clrs.h \
+      src/core.cpp src/core.h \
+      src/arg_parser.cpp src/arg_parser.h
 OBJS=main.o clrs.o core.o arg_parser.o
 
 GRAMMAR_FILES=grammar/rnbwParser.c grammar/rnbwParser.h \
@@ -28,19 +28,22 @@ com: $(FILES)
 	$(CC) $(FLAGS) -c $(FILES)
 build: $(FILES)
 	$(CC) $(FLAGS) $(OBJS) $(GRAMMAR_OBJS) -o $(NAME) $(LIBS)
-app: com build
+app: com build clean_objs
 run: all
 	./rnbw
 
 # files
-arg_parser.o: arg_parser.h arg_parser.cpp
-	$(CC) $(FLAGS) -c arg_parser.h arg_parser.cpp
-core.o: core.h core.cpp
-	$(CC) $(FLAGS) -c core.h core.cpp
+arg_parser.o: src/arg_parser.h src/arg_parser.cpp
+	$(CC) $(FLAGS) -c src/arg_parser.h src/arg_parser.cppp
+core.o: src/core.h src/core.cpp
+	$(CC) $(FLAGS) -c src/core.h src/core.cpp
 
 # asm:
 # 	g++ -S -g main.cpp -o main.s
 # 	as -alhnd main.s > main.lst
 
-clean:
-	rm rnbw *~ main.lst main.s a.out *.o *.gch
+clean_objs:
+	rm *.o *.gch
+
+clean: clean_objs
+	rm rnbw *~ main.lst main.s a.out

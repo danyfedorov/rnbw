@@ -1,8 +1,8 @@
 #ifndef RNBW_ARG_PARSER_H_INCLUDED
 #define RNBW_ARG_PARSER_H_INCLUDED
 
-#include "./grammar/rnbwLexer.h"
-#include "./grammar/rnbwParser.h"
+#include "../grammar/rnbwLexer.h"
+#include "../grammar/rnbwParser.h"
 
 #include <vector>
 
