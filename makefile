@@ -34,7 +34,7 @@ run: all
 
 # files
 arg_parser.o: src/arg_parser.h src/arg_parser.cpp
-	$(CC) $(FLAGS) -c src/arg_parser.h src/arg_parser.cppp
+	$(CC) $(FLAGS) -c src/arg_parser.h src/arg_parser.cpp
 core.o: src/core.h src/core.cpp
 	$(CC) $(FLAGS) -c src/core.h src/core.cpp
 

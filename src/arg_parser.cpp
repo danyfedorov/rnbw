@@ -15,6 +15,9 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+#define __PL(S) std::cout << S << std::endl
+#define __NL std::cout << std::endl
+
 using std::string;
 using std::vector;
 
@@ -37,24 +40,24 @@ antlr_context_t get_antlr_context(char* input_arg) {
     lxr = rnbwLexerNew(input);
 
     if (lxr == NULL) {
+        // fprintf(stderr, "rnbw: Unable to create the lexer due to malloc() failure1\n");
         throw std::runtime_error("rnbw: Unable to create the lexer due to malloc() failure1\n");
-        // fprintf(stderr, "Unable to create the lexer due to malloc() failure1\n");
         // exit(ANTLR3_ERR_NOMEM);
     }
 
     tstream = antlr3CommonTokenStreamSourceNew(ANTLR3_SIZE_HINT, TOKENSOURCE(lxr));
 
     if (tstream == NULL) {
+        // fprintf(stderr, "rnbw: Out of memory trying to allocate token stream\n");
         throw std::runtime_error("rnbw: Out of memory trying to allocate token stream\n");
-        // fprintf(stderr, "Out of memory trying to allocate token stream\n");
         // exit(ANTLR3_ERR_NOMEM);
     }
 
     psr = rnbwParserNew(tstream);
 
     if (tstream == NULL) {
+        // fprintf(stderr, "rnbw: Out of memory trying to allocate parser\n");
         throw std::runtime_error("rnbw: Out of memory trying to allocate parser\n");
-        // fprintf(stderr, "Out of memory trying to allocate parser\n");
         // exit(ANTLR3_ERR_NOMEM);
     }
 
@@ -182,6 +185,14 @@ vector<unsigned> mk_rainbow() {
     return retval;
 }
 
+void print_help() {
+    __PL("USAGE");
+    __PL("  rnbw [-c|--colors COLORS] [-w|--width WIDTH] [-a|--angle ANGLE] [-p|--path PATH] [-h|--help]");
+    __NL;
+    __PL("DESCRIPTION");
+    __PL("  TODO");
+}
+
 arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
     arg_parser_result_t retval;
 
@@ -198,17 +209,17 @@ arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
     vector<unsigned> path;
 
     Node tree(tree_arg);
-    // std::cout << tree.str << std::endl;
+    // __PL(tree.str)
     for (unsigned i = 0; i < tree.child_n; ++i) {
 
         Node option(tree.getChild(i));
-        // std::cout << "  " << option.str << std::endl;
+        // __PL("  " << option.str);
         if (option.str == "COLORS_OPT") {
             colors_opt = true;
             for (unsigned j = 0; j < option.child_n; ++j) {
 
                 Node stripe(option.getChild(j));
-                // std::cout << "    " << stripe.str << std::endl;
+                // __PL("    " << stripe.str);
                 if ((stripe.str == "COLORNUM") || (stripe.str == "COLORNAME")) {
                     path.push_back(get_colornum(stripe));
                 } else if (stripe.str == "RANGE") {
@@ -219,7 +230,7 @@ arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
         } else if (option.str == "PATH_OPT") {
             string sort_str = option.getChild(0).str;
             string order_str = option.getChild(1).str;
-            // std::cout << "    " << sort_str << " " << order_str << std::endl;
+            // __PL("    " << sort_str << " " << order_str);
 
             if (sort_str == "DEFAULT_PATH_SORT") {
                 curr_sort = EDGES;
@@ -234,10 +245,16 @@ arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
             }
         } else if (option.str == "WIDTH_OPT") {
             retval.width = std::stoi(option.getChild(0).str);
-            // std::cout << "    " << retval.width << std::endl;
+            // __PL("    " << retval.width);
         } else if (option.str == "ANGLE_OPT") {
             retval.angle = std::stoi(option.getChild(0).str) * M_PI / 180;
-            // std::cout << "    " << retval.angle << std::endl;
+            // __PL("    " << retval.angle);
+        } else if (option.str == "FILE_OPT") {
+            __PL(option.getChild(0).str);
+            exit(0);
+        } else if (option.str == "HELP_OPT") {
+            print_help();
+            exit(0);
         }
     }
 
@@ -257,7 +274,10 @@ arg_parser_result_t parse_arguments(int argc, char** argv) {
     if (argc > 1) {
         char* script = concat(argc, argv);
         antlr_context_t c = get_antlr_context(downcase_cstr(script));
+        // __PL("script:\n  " << script);
         delete[] script;
+
+        // __PL("tree:\n  " << c.ast.tree->toStringTree(c.ast.tree)->chars);
 
         if (c.ast.tree->getChildCount(c.ast.tree) > 0) {
             res = parse_tree(c.ast.tree);
