@@ -25,7 +25,7 @@ TODO
 `libutfcpp-dev`  - Provides UTF-8 support.  
 
 **Run:**  
-`make grammar` - To generate lexer and parser files from grammar.
-`make app`     - To build a program.
+`make grammar` - To generate lexer and parser files from grammar.  
+`make app`     - To build a program.  
 
 
