@@ -2,7 +2,7 @@ Run examples with `./run-examples.sh N` where `N` is the number of the script.
 
 **script-0.rnbw**  
 
-The simplest example is just list the color numbers.  
+The simplest example is just a list the color numbers.  
 
 ```
 --width  2     
@@ -38,8 +38,7 @@ Also notice changes in `--width` and `--angle` option.
 
 **script-3.rnbw**  
 
-Notice how you can use `()` to indicate color on a side of an interval as not included.  
-Opposed to `[]` which indicate that color should be included.  
+Notice how you can use `()` to not include color. Opposed to `[]` which indicate that color should be included.  
 The `[]` behaviour is the default one.  
 
 ```
@@ -140,10 +139,10 @@ Notice how you can use verbose `from to` syntax combined with color names instea
 
 ```
 --path   edges grb
---colors from chartreuse-2a to dark-slate-gray,
-         from not including dark-slate-gray to light-green-3,
-         from not including light-green-3 to orchid-1,
-         from not including orchid-1 to not including chartreuse-2a
+--colors from               chartreuse-2a   to               dark-slate-gray,
+         from not including dark-slate-gray to               light-green-3,
+         from not including light-green-3   to               orchid-1,
+         from not including orchid-1        to not including chartreuse-2a
 ```
 
 ![](https://user-images.githubusercontent.com/22116479/32408585-2fb972c4-c1a3-11e7-838e-767d602c722f.png)

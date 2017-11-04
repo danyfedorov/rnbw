@@ -1,5 +1,5 @@
 --path   edges grb
---colors from chartreuse-2a to dark-slate-gray,
-         from not including dark-slate-gray to light-green-3,
-         from not including light-green-3 to orchid-1,
-         from not including orchid-1 to not including chartreuse-2a
+--colors from               chartreuse-2a   to               dark-slate-gray,
+         from not including dark-slate-gray to               light-green-3,
+         from not including light-green-3   to               orchid-1,
+         from not including orchid-1        to not including chartreuse-2a
