@@ -1,4 +1,4 @@
 --path   edges rbg
 --width  2
 --angle  15
---colors [16->231]
+--colors 16->231

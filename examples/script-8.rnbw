@@ -1,0 +1,17 @@
+--width  1
+--angle  90
+
+--path   edges rgb
+--colors 53->231
+
+--path   edges rbg
+--colors 53->231
+
+--path   edges brg
+--colors 53->231
+
+--path   edges gbr
+--colors 53->231
+
+--path   edges bgr
+--colors 53->231

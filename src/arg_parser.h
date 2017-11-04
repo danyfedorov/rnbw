@@ -5,11 +5,13 @@
 #include "../grammar/rnbwParser.h"
 
 #include <vector>
+#include <string>
 
 struct arg_parser_result_t {
      std::vector<unsigned> path;
      float angle;
      unsigned width;
+     std::string filename;
 };
 
 arg_parser_result_t parse_arguments(int argc, char** argv);

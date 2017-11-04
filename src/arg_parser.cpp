@@ -89,6 +89,28 @@ unsigned get_argv_size(int argc, char** argv) {
     return size;
 }
 
+string pick_filename(int &argc, char** argv) {
+    string filename;
+    string str_arg;
+    unsigned shift = 0;
+    int i = 0;
+    while (i < argc) {
+        str_arg = string(argv[i]);
+        if ((str_arg == "--file") || (str_arg == "-f")) {
+            ++i;
+            filename = string(argv[i]);
+            shift += 2;
+        } else if (shift) {
+            argv[i - shift] = argv[i];
+        }
+        ++i;
+    }
+
+    argc -= shift;
+
+    return filename;
+}
+
 char* concat(int argc, char** argv) {
     unsigned size = get_argv_size(argc, argv);
 
@@ -187,7 +209,7 @@ vector<unsigned> mk_rainbow() {
 
 void print_help() {
     PL("USAGE");
-    PL("  rnbw [-c|--colors COLORS] [-w|--width WIDTH] [-a|--angle ANGLE] [-p|--path PATH] [-h|--help]");
+    PL("  rnbw [-c|--colors COLORS] [-w|--width WIDTH] [-a|--angle ANGLE] [-p|--path PATH] [-f|--file FILE] [-h|--help]");
     NL;
     PL("DESCRIPTION");
     PL("  TODO");
@@ -200,6 +222,7 @@ arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
     retval.width = 2;
     retval.angle = M_PI / 3;
     retval.path = mk_rainbow();
+    retval.filename = "";
 
     path_sort_t  curr_sort = EDGES;
     path_order_t curr_order = RGB;
@@ -266,40 +289,28 @@ arg_parser_result_t parse_tree(pANTLR3_BASE_TREE tree_arg) {
 }
 
 arg_parser_result_t default_res() {
-    return {mk_rainbow(), M_PI / 3, 2};
-}
-
-string pick_filename(int &argc, char** argv) {
-    string filename = "";
-    string str_arg;
-    bool shift = false;
-    int i = 0;
-    while (i < argc) {
-        str_arg = string(argv[i]);
-        if ((str_arg == "--file") || (str_arg == "-f")) {
-            ++i;
-            filename = string(argv[i]);
-            shift = true;
-        } else if (shift) {
-            argv[i - 2] = argv[i];
-        }
-        ++i;
-    }
-    return filename;
+    return {mk_rainbow(), M_PI / 3, 2, ""};
 }
 
 arg_parser_result_t parse_arguments(int argc, char** argv) {
     arg_parser_result_t res;
     if (argc > 1) {
+
+        // PL("argc_0:\n  " << argc);
+
         string filename = pick_filename(argc, argv);
-        PL("filename:\n" << filename);
+
+        // PL("filename:\n  " << filename);
+        // PL("argc_1:\n  " << argc);
+
         char* script = concat(argc, argv);
 
+        // PL("script:\n  " << script);
+
         antlr_context_t c = get_antlr_context(downcase_cstr(script));
-        PL("script:\n  " << script);
         delete[] script;
 
-        PL("tree:\n  " << c.ast.tree->toStringTree(c.ast.tree)->chars);
+        // PL("tree:\n  " << c.ast.tree->toStringTree(c.ast.tree)->chars);
 
         if (c.ast.tree->getChildCount(c.ast.tree) > 0) {
             res = parse_tree(c.ast.tree);
@@ -307,6 +318,7 @@ arg_parser_result_t parse_arguments(int argc, char** argv) {
             res = default_res();
         }
 
+        res.filename = filename;
         free_antlr_context(c);
     } else {
         res = default_res();

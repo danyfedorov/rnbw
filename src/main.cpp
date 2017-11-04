@@ -7,6 +7,7 @@
 
 // std
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <stdexcept>
 #include <vector>
@@ -58,13 +59,24 @@ int main(int argc, char** argv) {
 
     r = parse_arguments(argc, argv);
 
+    // decide on source of text
+    std::istream *input_stream;
+    std::ifstream f;
+    if ((r.filename == "") || (r.filename == "-")) {
+        input_stream = &cin;
+    } else {
+        f.open(r.filename.c_str());
+        input_stream = &f;
+    }
+
     string line;
     string::iterator it;
     unsigned color_i;
     float x;
     unsigned y_i = 0;
     unsigned x_i = 0;
-    while (getline(cin, line)) {
+
+    while (getline(*input_stream, line)) {
         x_i = 0;
         it = line.begin();
         while(it != line.end()) {
@@ -116,6 +128,8 @@ int main(int argc, char** argv) {
         cout << endl;
         ++y_i;
     }
+
+    f.close();
 
     return 0;
 }

@@ -16,7 +16,6 @@ tokens
     PATH_OPT;
     WIDTH_OPT;
     ANGLE_OPT;
-    FILE_OPT;
 
     // COLORS_OPT
     COLORNUM;
