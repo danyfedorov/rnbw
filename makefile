@@ -28,7 +28,7 @@ com: $(FILES)
 	$(CC) $(FLAGS) -c $(FILES)
 build: $(FILES)
 	$(CC) $(FLAGS) $(OBJS) $(GRAMMAR_OBJS) -o $(NAME) $(LIBS)
-app: com build clean_objs
+app: com build
 run: all
 	./rnbw
 
@@ -38,12 +38,10 @@ arg_parser.o: src/arg_parser.h src/arg_parser.cpp
 core.o: src/core.h src/core.cpp
 	$(CC) $(FLAGS) -c src/core.h src/core.cpp
 
+clean: clean_objs
+	rm rnbw *~ main.lst main.s a.out 2>/dev/null || true
+
 # asm:
 # 	g++ -S -g main.cpp -o main.s
 # 	as -alhnd main.s > main.lst
 
-clean_objs:
-	rm *.o *.gch
-
-clean: clean_objs
-	rm rnbw *~ main.lst main.s a.out
