@@ -4,6 +4,9 @@ Inspired by lolcat.
 
 WIP
 
+**NOTE:** To build first do `make com`, then `make build` because the makefile sucks.
+**TODO:** Figure it out and write sane makefile.
+
 ### Examples
 ```
 $ ./examples/generate-text.sh | \
