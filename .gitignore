@@ -6,6 +6,12 @@ rnbw
 # rnbwParser.*
 rnbw.tokens
 
+# gtags
+GPATH
+GRTAGS
+GTAGS
+GSYMS
+
 # Created by https://www.gitignore.io/api/c++,emacs,linux
 
 ### C++ ###
