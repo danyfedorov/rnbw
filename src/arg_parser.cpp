@@ -30,7 +30,8 @@ struct antlr_context_t {
 };
 
 antlr_context_t get_antlr_context(char* input_arg) {
-    pANTLR3_INPUT_STREAM input = antlr3NewAsciiStringCopyStream((pANTLR3_UINT8)input_arg, (ANTLR3_UINT32)strlen(input_arg), NULL);
+    /* pANTLR3_INPUT_STREAM input = antlr3NewAsciiStringCopyStream((pANTLR3_UINT8)input_arg, (ANTLR3_UINT32)strlen(input_arg), NULL); */
+    pANTLR3_INPUT_STREAM input = antlr3StringStreamNew((pANTLR3_UINT8)input_arg, ANTLR3_ENC_8BIT, (ANTLR3_UINT32)strlen(input_arg), NULL);
 
     prnbwLexer lxr;
     pANTLR3_COMMON_TOKEN_STREAM tstream;

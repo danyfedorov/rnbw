@@ -129,3 +129,4 @@ anaconda-mode/
 .nfs*
 
 # End of https://www.gitignore.io/api/c++,emacs,linux
+.idea
